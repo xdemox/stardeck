@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StarDeck</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', sans-serif;
+            min-height: 100vh;
+            color: #00ffff;
+            overflow-x: hidden;
+            background: black;
+            position: relative;
+        }
+
+        @keyframes starAnimation {
+            from {background-position: 0 0, 0 0, 0 0;}
+            to {background-position: 5000px 5000px, 1000px 1000px, 0px 0px;}
+        }
+        @keyframes galaxyAnimation {
+            0% {
+                transform: translate(0, 0);
+            }
+            100% {
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        @keyframes twinkle {
+            0%, 100% {
+                opacity: 0.5;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .galaxy-background {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            animation: galaxyAnimation 100s linear infinite;
+            z-index: -2;
+        }
+
+        .galaxy-background::before,
+        .galaxy-background::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(2px 2px at 20px 20px, #ffffff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 40px 70px, #ffe100, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 50px 160px, #00ffff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 90px 40px, #ff00ff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 130px 80px, #ff8000, rgba(0,0,0,0));
+            background-repeat: repeat;
+            background-size: 200px 200px;
+            opacity: 0.3;
+            animation: twinkle 5s infinite;
+        }
+
+        .galaxy-background::after {
+            background-size: 300px 300px;
+            background-position: 50px 50px;
+            animation: twinkle 7s infinite;
+        }
+
+        .nebula {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(ellipse at center, rgba(255,0,255,0.2) 0%, rgba(0,0,0,0) 70%),
+                radial-gradient(ellipse at center, rgba(0,255,255,0.2) 0%, rgba(0,0,0,0) 70%),
+                radial-gradient(ellipse at center, rgba(255,255,0,0.2) 0%, rgba(0,0,0,0) 70%);
+            background-position: 
+                50% 50%,
+                80% 30%,
+                20% 70%;
+            background-size: 
+                60% 60%,
+                40% 40%,
+                50% 50%;
+            background-repeat: no-repeat;
+            opacity: 0.5;
+            animation: galaxyAnimation 150s linear infinite;
+            z-index: -1;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 200%;
+            background-image: 
+                radial-gradient(2px 2px at 20px 20px, #00ffff, transparent),
+                radial-gradient(1px 1px at 50px 50px, #00ffff, transparent),
+                radial-gradient(2px 2px at 80px 80px, #00ffff, transparent);
+            background-size: 100px 100px, 150px 150px, 200px 200px;
+            animation: starAnimation 60s linear infinite;
+            opacity: 0.3;
+            z-index: -1;
+        }
+
+        #game-container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        @media (min-height: 800px) {
+            body {
+                justify-content: center;
+            }
+        }
+        @media (min-width: 768px) {
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media screen and (min-width: 320px) {
+            html {
+                font-size: calc(16px + 6 * ((100vw - 320px) / 680));
+            }
+        }
+
+        @media screen and (min-width: 1000px) {
+            html {
+                font-size: 22px;
+            }
+        }
+
+        .hand {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            min-height: 120px;
+            position: relative;
+        }
+
+        .card {
+            width: 15%;
+            min-width: 60px;
+            aspect-ratio: 2/3;
+            background-color: #001a1a;
+            border: 2px solid #00ffff;
+            border-radius: 5px;
+            margin: 5px;
+            line-height: normal;
+            font-size: calc(12px + 1vw);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #00ffff;
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+        }
+
+        .card .subtype {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            font-size: 70%;
+        }
+
+        .side-deck {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        /* Button styling with responsive sizing */
+        button {
+            background-color: #003333;
+            border: 2px solid #00ffff;
+            color: #00ffff;
+            padding: 10px 20px;
+            font-size: calc(10px + 1vw);
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            flex: 1 1 auto;
+            min-width: 150px;
+        }
+
+        button:hover {
+            background-color: #004d4d;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+        }
+
+        button:disabled {
+            background-color: #001a1a;
+            color: #004d4d;
+            cursor: not-allowed;
+            border-color: #004d4d;
+        }
+
+        #result, #score, #total {
+            font-size: calc(14px + 1vw);
+            margin-top: 10px;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+        }
+
+        .green {
+            background-color: #004d00; 
+            border: 3px solid #00ff00; 
+            color: #00ff00; 
+            background-image: linear-gradient(135deg, #004d00 50%, #003300 50%);
+        }
+
+        .blue {
+            background-color: #000066; 
+            border: 3px solid #0000ff; 
+            color: #0000ff;
+            background-image: linear-gradient(135deg, #000066 50%, #000033 50%);
+        }
+
+        .red {
+            background-color: #660000; 
+            border: 3px solid #ff0000; 
+            color: #ff0000;
+            background-image: linear-gradient(135deg, #660000 50%, #330000 50%);
+        }
+
+        .gold {
+            background-color: #664d00;
+            border: 3px solid #ffcc00; 
+            color: #ffcc00;
+            background-image: linear-gradient(135deg, #664d00 50%, #332600 50%);
+            box-shadow: 0 0 10px 2px rgba(255, 204, 0, 0.7);
+            animation: glowEffectGold 1.5s infinite alternate;
+        }
+
+        @keyframes glowEffectGold {
+            0% { box-shadow: 0 0 10px 2px rgba(255, 204, 0, 0.5); }
+            100% { box-shadow: 0 0 20px 4px rgba(255, 204, 0, 1); }
+        }
+
+        h1 {
+            font-size: calc(24px + 2vw);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+            margin-bottom: 20px;
+        }
+
+        #log {
+            max-height: 150px;
+            overflow-y: auto;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: rgba(0, 255, 255, 0.1);
+            border-radius: 5px;
+            font-size: calc(10px + 0.5vw);
+        }
+
+        .character-select, .shop {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .character, .power-up {
+            cursor: pointer;
+            padding: 10px;
+            border: 1px solid #00ffff;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            margin: 5px;
+            min-width: 120px;
+            font-size: calc(12px + 0.5vw);
+            text-align: center;
+        }
+
+        .character:hover, .power-up:hover {
+            background-color: rgba(0, 255, 255, 0.2);
+        }
+
+        .selected {
+            background-color: rgba(0, 255, 255, 0.4);
+        }
+
+        #credits {
+            font-size: calc(14px + 1vw);
+            margin-top: 10px;
+            color: #ffcc00;
+        }
+
+        h2 {
+            font-size: calc(18px + 1vw);
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+        }
+
+        .buttons-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                font-size: calc(10px + 1vw);
+            }
+
+            #log {
+                font-size: calc(8px + 0.5vw);
+            }
+
+            button {
+                min-width: 100px;
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.8);
+        }
+
+        .modal-content {
+            background-color: #000;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #00ffff;
+            width: 80%;
+            max-width: 400px;
+            color: #00ffff;
+            text-align: center;
+            position: relative;
+            animation: slideDown 0.5s;
+        }
+
+        @keyframes slideDown {
+            from {transform: translateY(-50px); opacity: 0;}
+            to {transform: translateY(0); opacity: 1;}
+        }
+
+        .modal-button {
+            background-color: #003333;
+            border: 2px solid #00ffff;
+            color: #00ffff;
+            padding: 10px 20px;
+            font-size: calc(10px + 1vw);
+            margin: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .modal-button:hover {
+            background-color: #004d4d;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+        }
+
+        #computer-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            color: #00ffff;
+            font-size: calc(16px + 1vw);
+        }
+
+        .power-animation {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: calc(30px + 5vw);
+            color: #ffcc00;
+            opacity: 0;
+            animation: powerAnim 1s forwards;
+            z-index: 10000;
+            pointer-events: none;
+        }
+
+        @keyframes powerAnim {
+            0% {opacity: 0;}
+            50% {opacity: 1;}
+            100% {opacity: 0;}
+        }
+
+        .hidden {
+          display: none;
+        }
+        .character-select.disabled {
+          pointer-events: none;
+          opacity: 0.5;
+        }
+
+        @keyframes particleBurst {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+
+        .win-particles {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            background-color: #00ff00;
+            border-radius: 50%;
+            animation: particleBurst 1s forwards;
+            pointer-events: none;
+        }
+
+        @keyframes screenShake {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(5px, 5px); }
+            50% { transform: translate(-5px, -5px); }
+            75% { transform: translate(5px, -5px); }
+        }
+
+        .lose-screen {
+            animation: screenShake 0.5s;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        .active-turn {
+            border: 4px solid rgba(0, 255, 255, 0.7);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+        }
+
+        #player-area.active-turn {
+            border-color: rgba(0, 255, 0, 0.7); 
+        }
+
+        #computer-area.active-turn {
+            border-color: rgba(255, 0, 0, 0.7);
+        }
+
+        @keyframes lightningBolt {
+            0% { transform: scaleY(0); opacity: 1; }
+            50% { transform: scaleY(1); opacity: 1; }
+            100% { transform: scaleY(1); opacity: 0; }
+        }
+
+        .lightning {
+            position: absolute;
+            width: 5px;
+            height: 150px;
+            background-color: #00ffff;
+            left: 50%;
+            top: 0;
+            animation: lightningBolt 0.2s forwards;
+            box-shadow: 0 0 10px #00ffff;
+        }
+
+        .power-activation {
+            position: fixed;
+            width: 100px;
+            height: 100px;
+            background-color: rgba(255, 255, 0, 0.5);
+            border-radius: 50%;
+            animation: glowEffect 1s forwards;
+            pointer-events: none;
+        }
+
+        @keyframes glowEffect {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        /* Card flip animation */
+        @keyframes cardFlip {
+            0% { transform: rotateY(0deg); }
+            50% { transform: rotateY(90deg); opacity: 0; }
+            100% { transform: rotateY(180deg); opacity: 1; }
+        }
+
+        .flip-card {
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-animate {
+            animation: cardFlip 0.6s forwards;
+        }
+
+        @keyframes slideIn {
+            0% { transform: translateX(100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        .slide-in {
+            animation: slideIn 0.5s ease-out forwards;
+        }
+
+        .jedi-theme {
+            border: 3px solid rgba(0, 255, 255, 0.9);
+            background: radial-gradient(circle, rgba(0, 0, 128, 0.5) 0%, rgba(0, 0, 128, 0) 70%);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 1);
+            transition: box-shadow 0.3s ease, border 0.3s ease;
+        }
+
+        .sith-theme {
+            border: 3px solid rgba(255, 0, 0, 0.9);
+            background: radial-gradient(circle, rgba(128, 0, 0, 0.5) 0%, rgba(128, 0, 0, 0) 70%);
+            box-shadow: 0 0 20px rgba(255, 0, 0, 1);
+            transition: box-shadow 0.3s ease, border 0.3s ease;
+        }
+
+        .smuggler-theme {
+            border: 3px solid rgba(255, 255, 0, 0.9);
+            background: radial-gradient(circle, rgba(128, 128, 0, 0.5) 0%, rgba(128, 128, 0, 0) 70%);
+            box-shadow: 0 0 20px rgba(255, 255, 0, 1);
+            transition: box-shadow 0.3s ease, border 0.3s ease;
+        }
+
+        .bounty-hunter-theme {
+            border: 3px solid rgba(0, 255, 0, 0.9);
+            background: radial-gradient(circle, rgba(0, 128, 0, 0.5) 0%, rgba(0, 128, 0, 0) 70%);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 1);
+            transition: box-shadow 0.3s ease, border 0.3s ease;
+        }
+
+        .character-icon {
+            position: absolute;
+            top: -30px;
+            left: 10px;
+            width: 50px;
+            height: 50px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            transition: opacity 0.3s ease;
+        }
+
+        .jedi-icon {
+            background-image: url('path-to-jedi-icon.png');
+        }
+
+        .sith-icon {
+            background-image: url('path-to-sith-icon.png');
+        }
+
+        .smuggler-icon {
+            background-image: url('path-to-smuggler-icon.png');
+        }
+
+        .bounty-hunter-icon {
+            background-image: url('path-to-bounty-hunter-icon.png');
+        }
+
+        .buttons-container button {
+            border: 2px solid;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .jedi-theme .buttons-container button {
+            border-color: rgba(0, 255, 255, 0.7);
+            background-color: rgba(0, 0, 128, 0.7);
+        }
+
+        .sith-theme .buttons-container button {
+            border-color: rgba(255, 0, 0, 0.7);
+            background-color: rgba(128, 0, 0, 0.7);
+        }
+
+        .smuggler-theme .buttons-container button {
+            border-color: rgba(255, 255, 0, 0.7);
+            background-color: rgba(128, 128, 0, 0.7);
+        }
+
+        .bounty-hunter-theme .buttons-container button {
+            border-color: rgba(0, 255, 0, 0.7);
+            background-color: rgba(0, 128, 0, 0.7);
+        }
+
+        .buttons-container button:hover {
+            box-shadow: 0 0 15px 5px rgba(255, 255, 255, 0.8);
+        }
+
+        @media (max-width: 600px) {
+            button {
+                padding: 20px 25px;
+                font-size: 18px;
+                width: 100%;
+            }
+
+            .card {
+                width: 70px; 
+                height: 100px;
+                font-size: 20px;
+            }
+
+            .buttons-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            #log {
+                font-size: 14px;
+                max-height: 200px;
+            }
+
+            .side-deck .card {
+                width: 60px;
+                height: 90px;
+            }
+        }
+        #event-indicator {
+            position: fixed;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background-color: rgba(255, 0, 0, 0.8);
+            color: white;
+            font-size: 18px;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+
+        /* When cards are frozen */
+        .frozen-card {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="galaxy-background"></div>
+    <div class="nebula"></div>
+    <div id="game-container">
+        <h1>Deckshift</h1>
+
+        <!-- Character Selection -->
+        <div class="character-select">
+            <div class="character" data-class="jedi">Jedi</div>
+            <div class="character" data-class="sith">Sith</div>
+            <div class="character" data-class="smuggler">Smuggler</div>
+            <div class="character" data-class="bounty-hunter">Bounty Hunter</div>
+        </div>
+
+        <!-- Shop -->
+        <div class="shop">
+            <div class="power-up" data-power="foresight">Foresight (10 credits)</div>
+            <div class="power-up" data-power="mind-trick">Mind Trick (15 credits)</div>
+            <div class="power-up" data-power="sabotage">Sabotage (20 credits)</div>
+        </div>
+
+        <!-- Credits -->
+        <div id="credits">Credits: 100</div>
+
+        <!-- Result and Score -->
+        <p id="result"></p>
+        <p id="score">Sets Won - Player: 0 | Computer: 0</p>
+
+        <!-- Game Areas -->
+        <div class="grid">
+            <!-- Computer Area -->
+            <div id="computer-area" style="position: relative;">
+                <h2>Computer</h2>
+                <div id="computer-hand" class="hand"></div>
+                <div id="computer-total">Computer Total: 0</div>
+                <!-- Computer Turn Overlay -->
+                <div id="computer-overlay">
+                    Computer is thinking...
+                </div>
+            </div>
+
+            <!-- Player Area -->
+            <div id="player-area">
+                <h2>You</h2>
+                <div id="player-hand" class="hand"></div>
+                <div id="player-total">Your Total: 0</div>
+            </div>
+        </div>
+
+        <!-- Side Deck -->
+        <div id="side-deck" class="side-deck"></div>
+        <div id="event-indicator"></div>
+
+        <!-- Buttons -->
+        <div class="buttons-container">
+            <button id="new-game-btn">New Game</button>
+            <button id="end-turn-btn" disabled="true">End Turn</button>
+            <button id="stand-btn" disabled="true">Stand</button>
+            <button id="use-power-btn" disabled>Use Power</button>
+        </div>
+
+        <!-- Game Log -->
+        <div id="log"></div>
+    </div>
+
+    <!-- Modal for Plus-Minus Card -->
+    <div id="plusMinusModal" class="modal">
+        <div class="modal-content">
+            <p>Do you want to add or subtract the card value?</p>
+            <button id="addButton" class="modal-button">Add</button>
+            <button id="subtractButton" class="modal-button">Subtract</button>
+        </div>
+    </div>
+
+    <!-- Animation Container -->
+    <div id="animationContainer"></div>
+
+    <!-- JavaScript Code -->
+    <script>
+        // Main deck and side deck options
+        const mainDeck = Array(40).fill().map((_, i) => ({ value: Math.floor(i / 4) + 1, type: 'green' }));
+        const sideDeckOptions = [
+            ...Array(6).fill().map((_, i) => ({ value: i + 1, type: 'blue' })),
+            ...Array(6).fill().map((_, i) => ({ value: -(i + 1), type: 'red' })),
+            ...Array(6).fill().map((_, i) => ({ value: i + 1, type: 'gold', subtype: 'plus-minus' })),
+            { value: 1, type: 'gold', subtype: 'tiebreaker' },
+            { value: 2, type: 'gold', subtype: 'double' },
+            { value: 2, type: 'gold', subtype: 'flip', flip: [2, 4] },
+            { value: 3, type: 'gold', subtype: 'flip', flip: [3, 6] },
+            { value: 0, type: 'gold', subtype: 'force-push' },
+            { value: 0, type: 'gold', subtype: 'force-pull' }
+        ];
+
+        // Game state variables
+        let playerHand = [];
+        let computerHand = [];
+        let playerSideDeck = [];
+        let computerSideDeck = [];
+        let playerTotal = 0;
+        let computerTotal = 0;
+        let playerSetsWon = 0;
+        let computerSetsWon = 0;
+        let currentTurn = 'player';
+        let playerStood = false;
+        let computerStood = false;
+        let forcePushUsed = false;
+        let forcePullUsed = false;
+        let playerCredits = 100;
+        let playerClass = '';
+        let activePowerUp = '';
+        let gameOver = false;
+
+        // Character powers
+        const characterPowers = {
+            'jedi': { name: 'Force Clarity', description: 'See the top card of the deck' },
+            'sith': { name: 'Force Lightning', description: 'Destroy one of your opponent\'s cards' },
+            'smuggler': { name: 'Lucky Shot', description: 'Redraw your last card' },
+            'bounty-hunter': { name: 'Thermal Detonator', description: 'Both players discard their highest value card' },
+            'foresight': { name: 'Foresight', cost: 10, description: 'See the next card in the deck' },
+            'mind-trick': { name: 'Mind Trick', cost: 15, description: 'Swap a card with your opponent' },
+            'sabotage': { name: 'Sabotage', cost: 20, description: 'Reduce the value of one of your opponent\'s cards by 2' }
+        };
+
+        // Define random events
+        const randomEvents = [
+            { name: "Meteor Storm", effect: "freeze-cards", turns: 2 },
+            { name: "Solar Flare", effect: "disable-power-ups", turns: 3 }
+        ];
+
+        let eventActive = null;  // Store the currently active event, if any
+        let turnsUntilNextEvent = Math.floor(Math.random() * 10) + 5;  // Random interval before next event
+
+        // Function to trigger a random event
+        function triggerRandomEvent() {
+            const event = randomEvents[Math.floor(Math.random() * randomEvents.length)];
+            updateEventIndicator(event.name);
+            applyEventEffect(event);
+        }
+
+        // Apply the effect of the random event
+        function applyEventEffect(event) {
+            if (event.effect === "freeze-cards") {
+                alert("All cards are frozen! No new cards can be played for the next " + event.turns + " turns.");
+                freezeCards(event.turns);
+            } else if (event.effect === "disable-power-ups") {
+                alert("Power-ups are disabled for the next " + event.turns + " turns.");
+                disablePowerUps(event.turns);
+            }
+        }
+
+        // Freeze cards for a set number of turns
+        function freezeCards(turns) {
+            playerFrozenTurns = turns;
+            computerFrozenTurns = turns;
+
+            // Update the game logic to prevent card playing during this time
+            document.getElementById('end-turn-btn').disabled = true;
+            document.getElementById('stand-btn').disabled = true;
+        }
+
+        // Disable power-ups for a set number of turns
+        function disablePowerUps(turns) {
+            powerUpsDisabledTurns = turns;
+
+            document.getElementById('use-power-btn').disabled = true;
+        }
+
+        // Function to check if the event duration has ended
+        function checkEventDuration() {
+            if (eventActive) {
+                eventActive.turns--;  // Decrement the event duration
+                if (eventActive.turns <= 0) {
+                    eventActive = null;  // Event is over
+                    alert("The random event has ended. Gameplay returns to normal.");
+                    document.getElementById('end-turn-btn').disabled = false;
+                    document.getElementById('stand-btn').disabled = false;
+                    document.getElementById('use-power-btn').disabled = false;
+                }
+            }
+        }
+
+        // Check if a random event should occur
+        function checkForRandomEvent() {
+            if (turnsUntilNextEvent <= 0 && !eventActive) {
+                triggerRandomEvent();
+                turnsUntilNextEvent = Math.floor(Math.random() * 10) + 5;  // Reset for next event
+            }
+            turnsUntilNextEvent--;
+        }
+
+        // Function to shuffle an array
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Function to create a side deck
+        function createSideDeck() {
+            let deck = [...sideDeckOptions];
+            shuffle(deck);
+            return deck.slice(0, 10);
+        }
+
+        // Function to draw a card from the main deck
+        function drawMainCard() {
+            const index = Math.floor(Math.random() * mainDeck.length);
+            return mainDeck[index];
+        }
+
+        // Function to update the hand display with animations
+        function updateHandDisplay(handElement, hand, total) {
+            handElement.innerHTML = '';
+            hand.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = `card ${card.type} flip-card slide-in`;
+                cardElement.textContent = '';  // Initially blank for the flip effect
+
+                // Delay card flip animation
+                setTimeout(() => {
+                    cardElement.textContent = card.value;  // Reveal value after flip
+                    if (card.subtype) {
+                        const subtypeElement = document.createElement('div');
+                        subtypeElement.className = 'subtype';
+                        subtypeElement.textContent = card.subtype;
+                        cardElement.appendChild(subtypeElement);
+                    }
+                    cardElement.classList.add('flip-card-animate');
+                }, index * 300);  // Delays the flip animation for each card to stagger them
+
+                handElement.appendChild(cardElement);
+            });
+
+            // Update total display
+            document.getElementById(`${handElement.id.split('-')[0]}-total`).textContent = 
+                `${handElement.id.includes('player') ? 'Your' : 'Computer'} Total: ${total}`;
+        }
+
+        // Function to update the side deck display
+        function updateSideDeckDisplay() {
+            const sideDeckElement = document.getElementById('side-deck');
+            sideDeckElement.innerHTML = '';
+            playerSideDeck.slice(0, 4).forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = `card ${card.type}`;
+                cardElement.textContent = card.value;
+                if (card.subtype) {
+                    const subtypeElement = document.createElement('div');
+                    subtypeElement.className = 'subtype';
+                    subtypeElement.textContent = card.subtype;
+                    cardElement.appendChild(subtypeElement);
+                }
+                cardElement.onclick = () => playSideCard(card);
+                sideDeckElement.appendChild(cardElement);
+            });
+        }
+
+        // Function to log messages to the game log
+        function logMessage(message) {
+            const logElement = document.getElementById('log');
+            const messageElement = document.createElement('div');
+            messageElement.textContent = message;
+            logElement.appendChild(messageElement);
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        // Function to start a new game or reset the game state
+        function newGame() {
+            if (gameOver) {
+                // Reset sets won if the game is over
+                playerSetsWon = 0;
+                computerSetsWon = 0;
+                playerCredits = 100;
+                updateCreditsDisplay();
+                gameOver = false;
+                document.getElementById('new-game-btn').textContent = "New Game";
+                document.querySelector('.character-select').classList.remove('hidden');
+                document.getElementById('end-turn-btn').disabled = true;
+                document.getElementById('stand-btn').disabled = true;
+            }
+
+            if (!playerClass) {
+                logMessage("Please select a character class.");
+                return;
+            }
+
+            playerHand = [];
+            computerHand = [];
+            playerSideDeck = createSideDeck();
+            computerSideDeck = createSideDeck();
+            playerTotal = 0;
+            computerTotal = 0;
+            currentTurn = 'player';
+            playerStood = false;
+            computerStood = false;
+            forcePushUsed = false;
+            forcePullUsed = false;
+            document.querySelector('.character-select').classList.add('hidden');
+            document.getElementById('result').textContent = '';
+            document.getElementById('end-turn-btn').disabled = false;
+            document.getElementById('stand-btn').disabled = false;
+            document.getElementById('use-power-btn').disabled = !playerClass && !activePowerUp;
+            document.getElementById('log').innerHTML = '';
+            updateHandDisplay(document.getElementById('player-hand'), playerHand, playerTotal);
+            updateHandDisplay(document.getElementById('computer-hand'), computerHand, computerTotal);
+            updateSideDeckDisplay();
+            document.getElementById('score').textContent = `Sets Won - Player: ${playerSetsWon} | Computer: ${computerSetsWon}`;
+            logMessage("New game started!");
+
+            playTurn();
+        }
+
+        // Function to handle each turn of the game
+        function playTurn() {
+            updateTurnIndicator();
+            
+            if (currentTurn === 'player' && !playerStood) {
+                const card = drawMainCard();
+                playerHand.push(card);
+                playerTotal += card.value;
+                updateHandDisplay(document.getElementById('player-hand'), playerHand, playerTotal);
+                logMessage(`You drew a ${card.value} (${card.type})`);
+                if (playerTotal > 20) {
+                    endSet();
+                } else if (playerTotal === 20) {
+                    stand();
+                }
+            } else if (currentTurn === 'computer' && !computerStood) {
+                // Show computer overlay and disable buttons
+                document.getElementById('computer-overlay').style.display = 'flex';
+                disablePlayerControls();
+                setTimeout(computerPlay, 1000); // Add delay for realism
+            } else {
+                endSet();
+            }
+        }
+
+        // Function to play a side card
+        function playSideCard(card) {
+            if (currentTurn === 'player' && !playerStood) {
+                if (card.type === 'gold' && card.subtype === 'plus-minus') {
+                    // Show custom modal instead of alert
+                    showPlusMinusModal(card);
+                } else {
+                    processSideCard(card);
+                }
+            }
+        }
+
+        // Function to process side card effects
+        function processSideCard(card, choice = null) {
+            if (card.type === 'gold' && card.subtype === 'plus-minus') {
+                playerTotal += choice ? card.value : -card.value;
+                logMessage(`You played a ${card.value} (${card.subtype}) as ${choice ? 'positive' : 'negative'}`);
+            } else if (card.type === 'gold' && card.subtype === 'double') {
+                if (playerHand.length > 0) {
+                    playerTotal += playerHand[playerHand.length - 1].value;
+                    logMessage(`You played a double card, doubling your last card's value`);
+                } else {
+                    logMessage("No cards to double.");
+                }
+            } else if (card.type === 'gold' && card.subtype === 'flip') {
+                let flipped = false;
+                playerHand.forEach(c => {
+                    if (card.flip.includes(Math.abs(c.value))) {
+                        playerTotal -= 2 * c.value;
+                        c.value = -c.value;
+                        flipped = true;
+                    }
+                });
+                computerHand.forEach(c => {
+                    if (card.flip.includes(Math.abs(c.value))) {
+                        computerTotal -= 2 * c.value;
+                        c.value = -c.value;
+                        flipped = true;
+                    }
+                });
+                logMessage(`You played a flip card${flipped ? ', flipping some values' : ', but no cards were flipped'}`);
+            } else if (card.type === 'gold' && card.subtype === 'force-push' && !forcePushUsed) {
+                forcePushUsed = true;
+                const pushedCard = computerHand.pop();
+                if (pushedCard) {
+                    computerTotal -= pushedCard.value;
+                    logMessage(`You used Force Push to remove the computer's last card (${pushedCard.value})`);
+                } else {
+                    logMessage(`You used Force Push, but the computer had no cards to remove`);
+                }
+            } else if (card.type === 'gold' && card.subtype === 'force-pull' && !forcePullUsed) {
+                forcePullUsed = true;
+                const pulledCard = drawMainCard();
+                computerHand.push(pulledCard);
+                computerTotal += pulledCard.value;
+                logMessage(`You used Force Pull to add a card (${pulledCard.value}) to the computer's hand`);
+            } else {
+                playerTotal += card.value;
+                logMessage(`You played a ${card.value} (${card.type})`);
+            }
+            playerHand.push(card);
+            playerSideDeck = playerSideDeck.filter(c => c !== card);
+            updateHandDisplay(document.getElementById('player-hand'), playerHand, playerTotal);
+            updateHandDisplay(document.getElementById('computer-hand'), computerHand, computerTotal);
+            updateSideDeckDisplay();
+            if (playerTotal > 20) {
+                endSet();
+            } else if (playerTotal === 20) {
+                stand();
+            }
+        }
+
+        // Function to show plus-minus modal
+        function showPlusMinusModal(card) {
+            const modal = document.getElementById('plusMinusModal');
+            modal.style.display = 'block';
+
+            document.getElementById('addButton').onclick = () => {
+                modal.style.display = 'none';
+                processSideCard(card, true);
+            };
+
+            document.getElementById('subtractButton').onclick = () => {
+                modal.style.display = 'none';
+                processSideCard(card, false);
+            };
+        }
+
+        // Function for the computer's turn logic
+        function computerPlay() {
+            const card = drawMainCard();
+            computerHand.push(card);
+            computerTotal += card.value;
+            updateHandDisplay(document.getElementById('computer-hand'), computerHand, computerTotal);
+            logMessage(`Computer drew a card.`);
+            if (computerTotal > 20) {
+                endSet();
+            } else if (computerTotal === 20) {
+                stand();
+            } else {
+                const playableSideCards = computerSideDeck.slice(0, 4).filter(c => {
+                    if (c.type === 'gold' && c.subtype === 'plus-minus') {
+                        return computerTotal + c.value <= 20 || computerTotal - c.value <= 20;
+                    }
+                    return computerTotal + c.value <= 20;
+                });
+
+                if (playableSideCards.length > 0 && Math.random() < 0.5) {
+                    const sideCard = playableSideCards[Math.floor(Math.random() * playableSideCards.length)];
+                    if (sideCard.type === 'gold' && sideCard.subtype === 'plus-minus') {
+                        const choice = computerTotal + sideCard.value <= 20;
+                        computerTotal += choice ? sideCard.value : -sideCard.value;
+                        logMessage(`Computer played a side card.`);
+                    } else if (sideCard.type === 'gold' && sideCard.subtype === 'double') {
+                        if (computerHand.length > 0) {
+                            computerTotal += computerHand[computerHand.length - 1].value;
+                            logMessage(`Computer played a double card.`);
+                        }
+                    } else if (sideCard.type === 'gold' && sideCard.subtype === 'flip') {
+                        let flipped = false;
+                        playerHand.forEach(c => {
+                            if (sideCard.flip.includes(Math.abs(c.value))) {
+                                playerTotal -= 2 * c.value;
+                                c.value = -c.value;
+                                flipped = true;
+                            }
+                        });
+                        computerHand.forEach(c => {
+                            if (sideCard.flip.includes(Math.abs(c.value))) {
+                                computerTotal -= 2 * c.value;
+                                c.value = -c.value;
+                                flipped = true;
+                            }
+                        });
+                        logMessage(`Computer played a flip card.`);
+                    } else if (sideCard.type === 'gold' && sideCard.subtype === 'force-push' && !forcePushUsed) {
+                        forcePushUsed = true;
+                        const pushedCard = playerHand.pop();
+                        if (pushedCard) {
+                            playerTotal -= pushedCard.value;
+                            logMessage(`Computer used Force Push.`);
+                        }
+                    } else if (sideCard.type === 'gold' && sideCard.subtype === 'force-pull' && !forcePullUsed) {
+                        forcePullUsed = true;
+                        const pulledCard = drawMainCard();
+                        playerHand.push(pulledCard);
+                        playerTotal += pulledCard.value;
+                        logMessage(`Computer used Force Pull.`);
+                    } else {
+                        computerTotal += sideCard.value;
+                        logMessage(`Computer played a side card.`);
+                    }
+                    computerHand.push(sideCard);
+                    computerSideDeck = computerSideDeck.filter(c => c !== sideCard);
+                    updateHandDisplay(document.getElementById('computer-hand'), computerHand, computerTotal);
+                    updateHandDisplay(document.getElementById('player-hand'), playerHand, playerTotal);
+                }
+
+                if (computerTotal >= 17 || (computerTotal > playerTotal && playerStood)) {
+                    stand();
+                } else {
+                    currentTurn = 'player';
+                    
+                    // Hide computer overlay and enable buttons
+                    document.getElementById('computer-overlay').style.display = 'none';
+                    enablePlayerControls();
+                    playTurn();
+                }
+            }
+        }
+
+        // Function to disable player controls during computer's turn
+        function disablePlayerControls() {
+            document.getElementById('end-turn-btn').disabled = true;
+            document.getElementById('stand-btn').disabled = true;
+            document.getElementById('use-power-btn').disabled = true;
+            document.querySelectorAll('.power-up').forEach(el => el.disabled = true);
+            document.querySelectorAll('.character').forEach(el => el.disabled = true);
+            document.getElementById('new-game-btn').disabled = true;
+            document.querySelectorAll('.card').forEach(el => el.style.pointerEvents = 'none');
+        }
+
+        // Function to enable player controls after computer's turn
+        function enablePlayerControls() {
+            document.getElementById('end-turn-btn').disabled = false;
+            document.getElementById('stand-btn').disabled = false;
+            document.getElementById('use-power-btn').disabled = !playerClass && !activePowerUp;
+            document.querySelectorAll('.power-up').forEach(el => el.disabled = false);
+            document.querySelectorAll('.character').forEach(el => el.disabled = false);
+            document.getElementById('new-game-btn').disabled = false;
+            document.querySelectorAll('.card').forEach(el => el.style.pointerEvents = 'auto');
+        }
+
+        // Function to end the current turn
+        function endTurn() {
+            currentTurn = 'computer';
+            checkForRandomEvent();
+            playTurn();
+        }
+
+        // Function to stand (end the turn and stop drawing cards)
+        function stand() {
+            if (currentTurn === 'player') {
+                playerStood = true;
+                logMessage("You stood.");
+                currentTurn = 'computer';
+                playTurn();
+            } else {
+                computerStood = true;
+                logMessage("Computer stood.");
+                // Hide computer overlay and enable buttons
+                document.getElementById('computer-overlay').style.display = 'none';
+                enablePlayerControls();
+                endSet();
+            }
+        }
+
+        // Function to update the display of player credits
+        function updateCreditsDisplay() {
+            document.getElementById('credits').textContent = `Credits: ${playerCredits}`;
+        }
+
+        // Function to select a character class
+        function selectCharacter(charClass) {
+            playerClass = charClass;
+            document.querySelectorAll('.character').forEach(el => el.classList.remove('selected'));
+            document.querySelector(`.character[data-class="${charClass}"]`).classList.add('selected');
+            logMessage(`You selected the ${charClass} class`);
+            document.getElementById('use-power-btn').disabled = false;
+            applyCharacterTheme();
+        }
+
+        // Function to buy a power-up from the shop
+        function buyPowerUp(power) {
+            if (playerCredits >= characterPowers[power].cost) {
+                playerCredits -= characterPowers[power].cost;
+                activePowerUp = power;
+                updateCreditsDisplay();
+                document.getElementById('use-power-btn').disabled = false;
+                logMessage(`You bought the ${power} power-up`);
+            } else {
+                logMessage("Not enough credits to buy this power-up");
+            }
+        }
+
+        // Function to use the character's special power
+        function usePower() {
+            if (playerClass && currentTurn === 'player') {
+                displayPowerAnimation(playerClass);
+                switch(playerClass) {
+                    case 'jedi':
+                        const nextCard = mainDeck[Math.floor(Math.random() * mainDeck.length)];
+                        logMessage(`Force Clarity reveals the next card: ${nextCard.value} (${nextCard.type})`);
+                        break;
+                    case 'sith':
+                        if (computerHand.length > 0) {
+                            const destroyedCard = computerHand.pop();
+                            computerTotal -= destroyedCard.value;
+                            updateHandDisplay(document.getElementById('computer-hand'), computerHand, computerTotal);
+                            logMessage(`Force Lightning destroyed the computer's card.`);
+                        } else {
+                            logMessage("The computer has no cards to destroy");
+                        }
+                        break;
+                    case 'smuggler':
+                        if (playerHand.length > 0) {
+                            const lastCard = playerHand.pop();
+                            playerTotal -= lastCard.value;
+                            const newCard = drawMainCard();
+                            playerHand.push(newCard);
+                            playerTotal += newCard.value;
+                            updateHandDisplay(document.getElementById('player-hand'), playerHand, playerTotal);
+                            logMessage(`Lucky Shot replaced your last card.`);
+                        } else {
+                            logMessage("You have no cards to redraw");
+                        }
+                        break;
+                    case 'bounty-hunter':
+                        if (playerHand.length > 0 && computerHand.length > 0) {
+                            const playerHighest = playerHand.reduce((max, card) => card.value > max.value ? card : max);
+                            const computerHighest = computerHand.reduce((max, card) => card.value > max.value ? card : max);
+                            playerHand = playerHand.filter(card => card !== playerHighest);
+                            computerHand = computerHand.filter(card => card !== computerHighest);
+                            playerTotal -= playerHighest.value;
+                            computerTotal -= computerHighest.value;
+                            updateHandDisplay(document.getElementById('player-hand'), playerHand, playerTotal);
+                            updateHandDisplay(document.getElementById('computer-hand'), computerHand, computerTotal);
+                            logMessage(`Thermal Detonator discarded highest cards.`);
+                        } else {
+                            logMessage("Not enough cards to use Thermal Detonator");
+                        }
+                        break;
+                }
+                document.getElementById('use-power-btn').disabled = true;
+            }
+        }
+
+        function triggerWinAnimation() {
+            const gameContainer = document.getElementById('game-container');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('win-particles');
+                particle.style.top = `${50 + Math.random() * 20}%`;
+                particle.style.left = `${50 + Math.random() * 20}%`;
+                gameContainer.appendChild(particle);
+                setTimeout(() => particle.remove(), 1000);  // Remove after animation
+            }
+        }
+
+        function updateTurnIndicator() {
+            const playerArea = document.getElementById('player-area');
+            const computerArea = document.getElementById('computer-area');
+
+            if (currentTurn === 'player') {
+                playerArea.classList.add('active-turn');
+                computerArea.classList.remove('active-turn');
+            } else {
+                playerArea.classList.remove('active-turn');
+                computerArea.classList.add('active-turn');
+            }
+        }
+
+        function triggerPowerActivationAnimation(powerType) {
+            const animationContainer = document.getElementById('animationContainer');
+            
+            if (powerType === 'sith') {
+                const lightning = document.createElement('div');
+                lightning.classList.add('lightning');
+                animationContainer.appendChild(lightning);
+                setTimeout(() => lightning.remove(), 200);  // Remove lightning after animation
+            } else {
+                const powerActivation = document.createElement('div');
+                powerActivation.classList.add('power-activation');
+                animationContainer.appendChild(powerActivation);
+                setTimeout(() => powerActivation.remove(), 1000);  // Remove glow after animation
+            }
+        }
+
+        function triggerLoseAnimation() {
+            const gameContainer = document.getElementById('game-container');
+            gameContainer.classList.add('lose-screen');
+            setTimeout(() => gameContainer.classList.remove('lose-screen'), 500);  // Remove shake after animation
+        }
+
+        // Function to display power animations
+        function displayPowerAnimation(powerType) {
+            triggerPowerActivationAnimation(powerType);
+            const animationContainer = document.getElementById('animationContainer');
+            const powerElement = document.createElement('div');
+            powerElement.className = 'power-animation';
+            powerElement.textContent = characterPowers[powerType].name;
+            animationContainer.appendChild(powerElement);
+            setTimeout(() => {
+                animationContainer.removeChild(powerElement);
+            }, 1000);
+        }
+
+        // Function to use a purchased power-up
+        function usePowerUp() {
+            if (activePowerUp && currentTurn === 'player') {
+                displayPowerAnimation(activePowerUp);
+                switch(activePowerUp) {
+                    case 'foresight':
+                        const nextCard = mainDeck[Math.floor(Math.random() * mainDeck.length)];
+                        logMessage(`Foresight reveals the next card: ${nextCard.value} (${nextCard.type})`);
+                        break;
+                    case 'mind-trick':
+                        if (playerHand.length > 0 && computerHand.length > 0) {
+                            const playerCard = playerHand.pop();
+                            const computerCard = computerHand.pop();
+                            playerHand.push(computerCard);
+                            computerHand.push(playerCard);
+                            playerTotal = playerTotal - playerCard.value + computerCard.value;
+                            computerTotal = computerTotal - computerCard.value + playerCard.value;
+                            updateHandDisplay(document.getElementById('player-hand'), playerHand, playerTotal);
+                            updateHandDisplay(document.getElementById('computer-hand'), computerHand, computerTotal);
+                            logMessage(`Mind Trick swapped the last cards.`);
+                        } else {
+                            logMessage("Not enough cards to use Mind Trick");
+                        }
+                        break;
+                    case 'sabotage':
+                        if (computerHand.length > 0) {
+                            const targetCard = computerHand[computerHand.length - 1];
+                            targetCard.value = Math.max(0, targetCard.value - 2);
+                            computerTotal = computerHand.reduce((sum, card) => sum + card.value, 0);
+                            updateHandDisplay(document.getElementById('computer-hand'), computerHand, computerTotal);
+                            logMessage(`Sabotage reduced the computer's last card value.`);
+                        } else {
+                            logMessage("The computer has no cards to sabotage");
+                        }
+                        break;
+                }
+                activePowerUp = '';
+                document.getElementById('use-power-btn').disabled = true;
+            }
+        }
+
+        // Function to end the set and determine the winner
+        function endSet() {
+            document.getElementById('end-turn-btn').disabled = true;
+            document.getElementById('stand-btn').disabled = true;
+            document.getElementById('use-power-btn').disabled = true;
+            let result;
+            if (playerTotal > 20 && computerTotal > 20) {
+                result = "Both bust! It's a draw.";
+                triggerLoseAnimation();
+            } else if (playerTotal > 20) {
+                result = "You bust! Computer wins the set.";
+                triggerLoseAnimation();
+                computerSetsWon++;
+            } else if (computerTotal > 20) {
+                result = "Computer busts! You win the set.";
+                triggerWinAnimation();
+                playerSetsWon++;
+            } else if (playerTotal > computerTotal) {
+                result = "You win the set!";
+                triggerWinAnimation();
+                playerSetsWon++;
+            } else if (computerTotal > playerTotal) {
+                result = "Computer wins the set!";
+                triggerLoseAnimation();
+                computerSetsWon++;
+            } else {
+                if (playerSideDeck.some(card => card.type === 'gold' && card.subtype === 'tiebreaker')) {
+                    result = "It's a tie, but you have the tiebreaker! You win the set.";
+                    triggerWinAnimation();
+                    playerSetsWon++;
+                } else if (computerSideDeck.some(card => card.type === 'gold' && card.subtype === 'tiebreaker')) {
+                    result = "It's a tie, but the computer has the tiebreaker! Computer wins the set.";
+                    triggerLoseAnimation();
+                    computerSetsWon++;
+                } else {
+                    result = "It's a tie! No one wins the set.";
+                }
+            }
+
+            // Award credits based on performance
+            if (playerTotal <= 20 && playerTotal > computerTotal) {
+                const creditsWon = 20 + playerTotal;
+                playerCredits += creditsWon;
+                logMessage(`You won ${creditsWon} credits!`);
+            } else if (computerTotal > 20 && playerTotal <= 20) {
+                const creditsWon = 20 + playerTotal;
+                playerCredits += creditsWon;
+                logMessage(`You won ${creditsWon} credits!`);
+            }
+            updateCreditsDisplay();
+
+            document.getElementById('result').textContent = result;
+            document.getElementById('score').textContent = `Sets Won - Player: ${playerSetsWon} | Computer: ${computerSetsWon}`;
+            logMessage(result);
+
+            if (playerSetsWon === 3 || computerSetsWon === 3) {
+                const gameWinner = playerSetsWon === 3 ? "You win" : "Computer wins";
+                document.getElementById('result').textContent += ` ${gameWinner} the game!`;
+                logMessage(`${gameWinner} the game!`);
+                gameOver = true;
+                document.getElementById('new-game-btn').textContent = "Play Again";
+            } else {
+                setTimeout(() => {
+                    newGame();
+                }, 3000);
+            }
+        }
+
+        // Event listeners
+        document.getElementById('new-game-btn').addEventListener('click', newGame);
+        document.getElementById('end-turn-btn').addEventListener('click', endTurn);
+        document.getElementById('stand-btn').addEventListener('click', stand);
+        document.getElementById('use-power-btn').addEventListener('click', () => {
+            if (activePowerUp) {
+                usePowerUp();
+            } else {
+                usePower();
+            }
+        });
+        document.querySelectorAll('.character').forEach(el => {
+            el.addEventListener('click', () => selectCharacter(el.dataset.class));
+        });
+        document.querySelectorAll('.power-up').forEach(el => {
+            el.addEventListener('click', () => buyPowerUp(el.dataset.power));
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('plusMinusModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+        
+        // Apply character-specific themes to the player area based on the selected character
+        function applyCharacterTheme() {
+            const playerArea = document.getElementById('player-area');
+            const buttonsContainer = document.querySelector('.buttons-container');
+            const iconContainer = document.createElement('div');  // Create an icon container for character icons
+
+            // Remove existing character theme classes
+            playerArea.classList.remove('jedi-theme', 'sith-theme', 'smuggler-theme', 'bounty-hunter-theme');
+            buttonsContainer.classList.remove('jedi-theme', 'sith-theme', 'smuggler-theme', 'bounty-hunter-theme');
+            if (playerArea.querySelector('.character-icon')) {
+                playerArea.querySelector('.character-icon').remove();  // Remove old icon if exists
+            }
+
+            // Apply the theme based on selected class and add an icon
+            if (playerClass === 'jedi') {
+                playerArea.classList.add('jedi-theme');
+                buttonsContainer.classList.add('jedi-theme');
+                iconContainer.className = 'character-icon jedi-icon';
+            } else if (playerClass === 'sith') {
+                playerArea.classList.add('sith-theme');
+                buttonsContainer.classList.add('sith-theme');
+                iconContainer.className = 'character-icon sith-icon';
+            } else if (playerClass === 'smuggler') {
+                playerArea.classList.add('smuggler-theme');
+                buttonsContainer.classList.add('smuggler-theme');
+                iconContainer.className = 'character-icon smuggler-icon';
+            } else if (playerClass === 'bounty-hunter') {
+                playerArea.classList.add('bounty-hunter-theme');
+                buttonsContainer.classList.add('bounty-hunter-theme');
+                iconContainer.className = 'character-icon bounty-hunter-icon';
+            }
+
+            // Append the icon container to the player area
+            playerArea.appendChild(iconContainer);
+        }
+        
+        function updateEventIndicator(eventName) {
+            const eventIndicator = document.getElementById('event-indicator');
+            eventIndicator.textContent = `Event: ${eventName}`;
+            eventIndicator.style.display = 'block';
+
+            setTimeout(function() {
+                eventIndicator.style.display = 'none';
+            }, 30000); 
+        }
+
+        // Initialize the game
+        updateCreditsDisplay();
+    </script>
+</body>
+</html>
