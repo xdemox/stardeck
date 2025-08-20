@@ -416,6 +416,8 @@
             <button id="end-turn-btn" disabled="true">End Turn</button>
             <button id="stand-btn" disabled="true">Stand</button>
             <button id="use-power-btn" disabled>Use Power</button>
+            <button id="mulligan-btn" disabled title="Redraw your 4-card side hand (once per set)">Mulligan Side</button>
+            <button id="reroll-btn" disabled title="Reroll your last main draw (once per set)">Reroll Last</button>
             <button id="settings-btn" aria-label="Open Settings">Settings</button>
             <button id="help-btn" aria-label="How to Play">Help</button>
             <button id="achievements-btn" aria-label="Achievements">Achievements</button>
@@ -431,6 +433,15 @@
             <p>Do you want to add or subtract the card value?</p>
             <button id="addButton" class="modal-button">Add</button>
             <button id="subtractButton" class="modal-button">Subtract</button>
+        </div>
+    </div>
+
+    <div id="patronModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="patronTitle">
+        <div class="modal-content">
+            <h3 id="patronTitle">A Patron Approaches</h3>
+            <div id="patronOfferText" style="text-align:left; line-height:1.5; margin-top:8px; margin-bottom:12px;"></div>
+            <button id="patronAccept" class="modal-button">Accept</button>
+            <button id="patronDecline" class="modal-button">Decline</button>
         </div>
     </div>
 
@@ -595,6 +606,11 @@
         let modifierSwapAtStart = false;
         let precisionBonusEnabled = true;
         let precisionBonusPending = false;
+        // Mid-match mechanics
+        let mulliganAvailable = true; // once per set for player
+        let rerollAvailable = true;   // once per set for player
+        let lastPlayerDrawnCard = null;
+        let patronOfferActive = null; // { id, text, apply() }
 
         // Stats
         let stats = {
@@ -668,6 +684,17 @@
             { name: 'Meteor Storm', effect: 'freeze-cards', turns: 2 },
             { name: 'Solar Flare', effect: 'disable-power-ups', turns: 3 }
         ];
+        const patronOffers = [
+            { id: 'tip_dealer', name: 'Tip the Dealer', text: 'Pay 10 credits now; in return, you will draw +1 on your next main card.',
+              canOffer: () => playerCredits >= 10 && currentTurn === 'player',
+              apply: () => { playerCredits -= 10; const card = drawMainCard(); card.value = Math.min(10, card.value + 1); playerHand.push(card); playerTotal += card.value; updateCreditsDisplay(); updateHandDisplay(document.getElementById('player-hand'), playerHand, playerTotal); logMessage('Dealer tipped: next card bumped by +1.'); } },
+            { id: 'shadow_swap', name: 'Shadow Swap', text: 'Swap any one of your cards with a random computer card for 5 credits.',
+              canOffer: () => playerCredits >= 5 && playerHand.length > 0 && computerHand.length > 0 && currentTurn === 'player',
+              apply: () => { playerCredits -= 5; const i = Math.floor(Math.random()*playerHand.length); const j = Math.floor(Math.random()*computerHand.length); const p = playerHand[i]; const c = computerHand[j]; playerTotal = playerTotal - p.value + c.value; computerTotal = computerTotal - c.value + p.value; playerHand[i] = c; computerHand[j] = p; updateCreditsDisplay(); updateHandDisplay(document.getElementById('player-hand'), playerHand, playerTotal); updateHandDisplay(document.getElementById('computer-hand'), computerHand, computerTotal); logMessage('Shadow Swap executed.'); } },
+            { id: 'house_drink', name: 'House Drink', text: 'Take a “house drink”: reduce both totals by 1 (free).',
+              canOffer: () => playerTotal > 0 || computerTotal > 0,
+              apply: () => { playerTotal = Math.max(0, playerTotal - 1); computerTotal = Math.max(0, computerTotal - 1); updateHandDisplay(document.getElementById('player-hand'), playerHand, playerTotal); updateHandDisplay(document.getElementById('computer-hand'), computerHand, computerTotal); logMessage('Both totals reduced by 1.'); } },
+        ];
         let eventActive = null;
         let turnsUntilNextEvent = Math.floor(Math.random() * 10) + 5;
         let playerFrozenTurns = 0;
@@ -704,6 +731,7 @@
             const card = drawPile.pop();
             return card;
         }
+        function rememberPlayerDraw(card) { lastPlayerDrawnCard = card ? { ...card } : null; }
 
         function createSideDeck() {
             // Build a 10-card collection: use player's saved selection if available
@@ -842,6 +870,7 @@
             playerFrozenTurns = 0; computerFrozenTurns = 0; powerUpsDisabledTurns = 0; eventActive = null;
             playerSideCardPlayedThisTurn = false; computerSideCardPlayedThisTurn = false;
             precisionBonusPending = false;
+            mulliganAvailable = true; rerollAvailable = true; lastPlayerDrawnCard = null; patronOfferActive = null;
             document.querySelector('.character-select').classList.add('hidden');
             document.getElementById('result').textContent = '';
             document.getElementById('end-turn-btn').disabled = false;
@@ -888,6 +917,17 @@
                     logMessage(`Event: ${event.name} — power-ups disabled for ${event.turns} turns.`);
                     document.getElementById('use-power-btn').disabled = true;
                 }
+                // Patron offers (one-off deals)
+                if (!patronOfferActive && Math.random() < 0.35) {
+                    const candidates = patronOffers.filter(p => p.canOffer());
+                    if (candidates.length) {
+                        patronOfferActive = candidates[Math.floor(Math.random() * candidates.length)];
+                        const text = `<strong>${patronOfferActive.name}</strong><br>${patronOfferActive.text}`;
+                        const modal = document.getElementById('patronModal');
+                        document.getElementById('patronOfferText').innerHTML = text;
+                        modal.style.display = 'block';
+                    }
+                }
                 turnsUntilNextEvent = Math.floor(Math.random() * 10) + 5;
             }
             turnsUntilNextEvent--;
@@ -910,6 +950,8 @@
             document.getElementById('end-turn-btn').disabled = true;
             document.getElementById('stand-btn').disabled = true;
             document.getElementById('use-power-btn').disabled = true;
+            document.getElementById('mulligan-btn').disabled = true;
+            document.getElementById('reroll-btn').disabled = true;
             document.querySelectorAll('.power-up').forEach(el => el.disabled = true);
             document.querySelectorAll('.character').forEach(el => el.disabled = true);
             document.getElementById('new-game-btn').disabled = true;
@@ -919,6 +961,8 @@
             document.getElementById('end-turn-btn').disabled = false;
             document.getElementById('stand-btn').disabled = false;
             document.getElementById('use-power-btn').disabled = (!playerClass && !activePowerUp) || powerUpsDisabledTurns > 0;
+            document.getElementById('mulligan-btn').disabled = !mulliganAvailable;
+            document.getElementById('reroll-btn').disabled = !rerollAvailable || !lastPlayerDrawnCard;
             document.querySelectorAll('.power-up').forEach(el => el.disabled = false);
             document.querySelectorAll('.character').forEach(el => el.disabled = false);
             document.getElementById('new-game-btn').disabled = false;
@@ -938,6 +982,7 @@
                 const card = drawMainCard();
                 playerHand.push(card);
                 playerTotal += card.value;
+                rememberPlayerDraw(card);
                 updateHandDisplay(document.getElementById('player-hand'), playerHand, playerTotal);
                 logMessage(`You drew a ${card.value} (${card.type})`);
                 playBeep(660, 0.05, 0.02);
@@ -971,6 +1016,24 @@
             if (playerSideCardPlayedThisTurn) { logMessage('You already used a side card this turn.'); return; }
             if (card.type === 'gold' && card.subtype === 'plus-minus') showPlusMinusModal(card);
             else processSideCard(card);
+        }
+
+        // One-time side-deck mulligan
+        function mulliganSideDeck() {
+            if (!mulliganAvailable || currentTurn !== 'player') return;
+            playerSideDeck = drawSideHand(playerSideCollection);
+            mulliganAvailable = false; logMessage('You mulliganed your side hand.');
+            updateSideDeckDisplay(); enablePlayerControls();
+        }
+
+        // One-time reroll of last main draw
+        function rerollLastDraw() {
+            if (!rerollAvailable || currentTurn !== 'player' || !lastPlayerDrawnCard || playerHand.length === 0) return;
+            const last = playerHand.pop(); playerTotal -= last.value;
+            const replacement = drawMainCard(); playerHand.push(replacement); playerTotal += replacement.value; rememberPlayerDraw(replacement);
+            rerollAvailable = false; logMessage(`Rerolled last draw: replaced ${last.value} with ${replacement.value}.`);
+            updateHandDisplay(document.getElementById('player-hand'), playerHand, playerTotal);
+            if (playerTotal > 20) endSet(); else if (playerTotal === 20) stand(); else enablePlayerControls();
         }
 
         function processSideCard(card, choice = null) {
@@ -1274,6 +1337,8 @@
         document.getElementById('end-turn-btn').addEventListener('click', endTurn);
         document.getElementById('stand-btn').addEventListener('click', stand);
         document.getElementById('use-power-btn').addEventListener('click', () => { if (activePowerUp) usePowerUp(); else usePower(); });
+        document.getElementById('mulligan-btn').addEventListener('click', mulliganSideDeck);
+        document.getElementById('reroll-btn').addEventListener('click', rerollLastDraw);
         document.querySelectorAll('.character').forEach(el => el.addEventListener('click', () => selectCharacter(el.dataset.class)));
         document.querySelectorAll('.power-up').forEach(el => el.addEventListener('click', () => buyPowerUp(el.dataset.power)));
         window.addEventListener('click', (event) => { const modal = document.getElementById('plusMinusModal'); if (event.target == modal) modal.style.display = 'none'; });
@@ -1318,6 +1383,18 @@
         // Help & Achievements
         document.getElementById('help-btn').addEventListener('click', () => { document.getElementById('helpModal').style.display = 'block'; });
         document.getElementById('closeHelp').addEventListener('click', () => { document.getElementById('helpModal').style.display = 'none'; });
+        // Patron modal handlers
+        document.getElementById('patronAccept').addEventListener('click', () => {
+            if (patronOfferActive) {
+                try { patronOfferActive.apply(); } catch (e) { /* ignore */ }
+                patronOfferActive = null;
+            }
+            document.getElementById('patronModal').style.display = 'none';
+        });
+        document.getElementById('patronDecline').addEventListener('click', () => {
+            patronOfferActive = null;
+            document.getElementById('patronModal').style.display = 'none';
+        });
         document.getElementById('achievements-btn').addEventListener('click', () => { renderAchievements(); document.getElementById('achievementsModal').style.display = 'block'; });
         document.getElementById('closeAchievements').addEventListener('click', () => { document.getElementById('achievementsModal').style.display = 'none'; });
         document.getElementById('stats-btn').addEventListener('click', () => { renderStats(); document.getElementById('statsModal').style.display = 'block'; });
