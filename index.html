@@ -74,196 +74,361 @@
             background-size: 100px 100px, 150px 150px, 200px 200px; animation: starAnimation 60s linear infinite; opacity: 0.3; z-index: -1;
         }
 
-        /* Responsive Layout System */
+        /* KOTOR Pazaak Authentic Layout */
         #game-container { 
-            max-width: 1400px; 
-            margin: auto; 
-            padding: clamp(10px, 2vw, 30px); 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px; 
             text-align: center;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            gap: clamp(10px, 2vw, 20px);
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            border: 3px solid #8B4513;
+            border-radius: 15px;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.8), 0 0 30px rgba(139, 69, 19, 0.6);
         }
         
-        /* Header Section */
+        /* Game Header - Credits and Score */
         .game-header {
-            display: flex;
-            flex-direction: column;
-            gap: clamp(8px, 1.5vw, 15px);
-            margin-bottom: clamp(10px, 2vw, 20px);
-        }
-        
-        .header-top {
+            background: linear-gradient(90deg, #2a2a2a, #1a1a1a);
+            border: 2px solid #8B4513;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: clamp(8px, 1.5vw, 15px);
+            gap: 15px;
         }
         
         .game-info {
             display: flex;
-            flex-direction: column;
-            gap: 4px;
-            text-align: left;
+            gap: 20px;
+            align-items: center;
         }
         
         .game-stats {
             display: flex;
-            gap: clamp(10px, 2vw, 20px);
-            justify-content: center;
-            flex-wrap: wrap;
-            font-size: clamp(12px, 2.5vw, 16px);
+            gap: 20px;
+            align-items: center;
         }
         
-        /* Menu Sections */
-        .menu-section {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(0, 255, 255, 0.2);
-            border-radius: 8px;
-            padding: clamp(12px, 2vw, 20px);
-            margin-bottom: clamp(10px, 2vw, 20px);
-        }
-        
-        .menu-section h3 {
-            margin: 0 0 clamp(8px, 1.5vw, 15px) 0;
-            font-size: clamp(14px, 2.5vw, 18px);
-            color: #00ffff;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        
-        /* Character Selection */
+        /* Character Selection - KOTOR Style */
         .character-select { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: clamp(8px, 1.5vw, 15px);
-            margin-bottom: clamp(10px, 2vw, 20px);
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
         
         .character { 
             cursor: pointer; 
-            padding: clamp(10px, 2vw, 15px); 
-            border: 2px solid #00ffff; 
-            border-radius: 8px; 
+            padding: 12px 20px; 
+            border: 2px solid #8B4513; 
+            border-radius: 5px; 
             transition: all 0.3s ease; 
-            font-size: clamp(12px, 2.5vw, 16px);
+            font-size: 14px;
             text-align: center;
-            background: rgba(0, 0, 0, 0.2);
+            background: linear-gradient(135deg, #3a3a3a, #2a2a2a);
+            color: #FFD700;
+            text-transform: uppercase;
+            font-weight: bold;
+            min-width: 100px;
         }
         .character:hover { 
-            background-color: rgba(0, 255, 255, 0.2); 
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 255, 255, 0.3);
+            background: linear-gradient(135deg, #4a4a4a, #3a3a3a);
+            border-color: #FFD700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
         }
         .character.selected { 
-            background-color: rgba(0, 255, 255, 0.4); 
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+            border-color: #FFD700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
         }
         
-        /* Shop Section */
+        /* Shop - KOTOR Style */
         .shop { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: clamp(8px, 1.5vw, 15px);
-            margin-bottom: clamp(10px, 2vw, 20px);
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
         
         .power-up { 
             cursor: pointer; 
-            padding: clamp(8px, 1.5vw, 12px); 
-            border: 1px solid #00ffff; 
-            border-radius: 6px; 
-            transition: background-color 0.3s ease; 
-            font-size: clamp(11px, 2.2vw, 14px);
+            padding: 10px 15px; 
+            border: 2px solid #8B4513; 
+            border-radius: 5px; 
+            transition: all 0.3s ease; 
+            font-size: 12px;
             text-align: center;
-            background: rgba(0, 0, 0, 0.2);
+            background: linear-gradient(135deg, #3a3a3a, #2a2a2a);
+            color: #FFD700;
+            min-width: 120px;
         }
         .power-up:hover { 
-            background-color: rgba(0, 255, 255, 0.2); 
-            transform: translateY(-1px);
+            background: linear-gradient(135deg, #4a4a4a, #3a3a3a);
+            border-color: #FFD700;
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
         }
         
-        /* Game Board */
+        /* Game Board - KOTOR Pazaak Table */
         .game-board {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: clamp(10px, 2vw, 20px);
+            background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+            border: 3px solid #8B4513;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
         }
         
         .grid { 
             display: grid; 
-            grid-template-columns: 1fr; 
-            gap: clamp(15px, 3vw, 30px);
-            margin-bottom: clamp(10px, 2vw, 20px);
+            grid-template-columns: 1fr 1fr; 
+            gap: 30px;
+            margin-bottom: 20px;
         }
         
-        @media (min-width: 768px) { 
-            .grid { 
-                grid-template-columns: repeat(2, 1fr); 
-            }
+        /* Player Areas - KOTOR Style */
+        #computer-area, #player-area {
+            background: linear-gradient(135deg, #3a3a3a, #2a2a2a);
+            border: 2px solid #8B4513;
+            border-radius: 8px;
+            padding: 15px;
+            position: relative;
+        }
+        
+        #computer-area h2, #player-area h2 {
+            color: #FFD700;
+            text-transform: uppercase;
+            font-size: 18px;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        /* Cards - KOTOR Pazaak Style */
+        .hand { 
+            display: flex; 
+            justify-content: center; 
+            flex-wrap: wrap; 
+            min-height: 120px; 
+            position: relative;
+            gap: 8px;
+            padding: 10px;
+        }
+        
+        .card {
+            width: 80px; 
+            height: 120px;
+            background: linear-gradient(135deg, #4a4a4a, #3a3a3a);
+            border: 2px solid #8B4513; 
+            border-radius: 8px; 
+            margin: 0; 
+            line-height: normal;
+            font-size: 18px; 
+            font-weight: bold;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: #FFD700;
+            position: relative; 
+            transition: transform 0.3s ease, box-shadow 0.3s ease; 
+            cursor: pointer;
+            flex-shrink: 0;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+        .card:hover { 
+            transform: translateY(-5px) scale(1.05); 
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.6);
+            border-color: #FFD700;
+        }
+        
+        /* Card Types - KOTOR Colors */
+        .card.green { 
+            background: linear-gradient(135deg, #2d5a2d, #1a3a1a); 
+            border-color: #4CAF50; 
+            color: #4CAF50; 
+        }
+        .card.blue { 
+            background: linear-gradient(135deg, #2d2d5a, #1a1a3a); 
+            border-color: #2196F3; 
+            color: #2196F3; 
+        }
+        .card.red { 
+            background: linear-gradient(135deg, #5a2d2d, #3a1a1a); 
+            border-color: #f44336; 
+            color: #f44336; 
+        }
+        .card.gold { 
+            background: linear-gradient(135deg, #5a5a2d, #3a3a1a); 
+            border-color: #FFD700; 
+            color: #FFD700; 
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+        
+        /* Side Deck - KOTOR Style */
+        .side-deck { 
+            display: flex; 
+            justify-content: center; 
+            flex-wrap: wrap; 
+            margin-top: 15px;
+            gap: 8px;
+            padding: 15px;
+            background: linear-gradient(135deg, #3a3a3a, #2a2a2a);
+            border: 2px solid #8B4513;
+            border-radius: 8px;
+        }
+        
+        /* Totals Display - KOTOR Style */
+        #computer-total, #player-total {
+            color: #FFD700;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 0;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+        
+        /* Progress Bars - KOTOR Style */
+        .progress {
+            width: 100%;
+            height: 10px;
+            background: #2a2a2a;
+            border: 1px solid #8B4513;
+            border-radius: 5px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .progress .bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #FFD700, #FFA500);
+            transition: width 0.3s ease;
+        }
+        .progress .bar.safe { background: linear-gradient(90deg, #4CAF50, #45a049); }
+        .progress .bar.warn { background: linear-gradient(90deg, #FFD700, #FFA500); }
+        .progress .bar.danger { background: linear-gradient(90deg, #f44336, #d32f2f); }
+        
+        /* Buttons - KOTOR Style */
+        button {
+            background: linear-gradient(135deg, #4a4a4a, #3a3a3a); 
+            border: 2px solid #8B4513; 
+            color: #FFD700; 
+            padding: 10px 20px;
+            font-size: 14px; 
+            margin: 5px; 
+            cursor: pointer; 
+            border-radius: 5px;
+            transition: all 0.3s ease; 
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            font-weight: bold;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            white-space: nowrap;
+        }
+        button:hover { 
+            background: linear-gradient(135deg, #5a5a5a, #4a4a4a);
+            border-color: #FFD700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button:disabled { 
+            background: linear-gradient(135deg, #2a2a2a, #1a1a1a); 
+            color: #666; 
+            cursor: not-allowed; 
+            border-color: #666; 
+            transform: none;
+            box-shadow: none;
         }
         
         /* Action Buttons */
         .action-buttons {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: clamp(6px, 1vw, 12px);
-            margin-bottom: clamp(10px, 2vw, 20px);
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
         }
         
         .utility-buttons {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: clamp(6px, 1vw, 12px);
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
         }
         
-        /* Responsive Typography */
-        @media screen and (min-width: 320px) { 
-            html { font-size: calc(14px + 4 * ((100vw - 320px) / 680)); } 
+        /* Game Info - KOTOR Style */
+        #credits { 
+            font-size: 16px; 
+            margin: 0; 
+            color: #FFD700; 
+            font-weight: bold;
         }
-        @media screen and (min-width: 1000px) { 
-            html { font-size: 18px; 
+        #wager { 
+            font-size: 14px; 
+            margin: 0; 
+            color: #FFA500; 
+            font-weight: bold;
+        }
+        #result, #score { 
+            font-size: 14px; 
+            margin: 0; 
+            color: #FFD700;
+            font-weight: bold;
         }
         
-        /* Mobile Optimizations */
-        @media (max-width: 600px) {
-            .header-top {
+        /* Log - KOTOR Style */
+        #log { 
+            max-height: 150px; 
+            overflow-y: auto; 
+            margin-top: 15px; 
+            padding: 15px; 
+            background: linear-gradient(135deg, #2a2a2a, #1a1a1a); 
+            border: 2px solid #8B4513;
+            border-radius: 8px; 
+            font-size: 12px;
+            color: #FFD700;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .grid { 
+                grid-template-columns: 1fr; 
+                gap: 20px;
+            }
+            
+            .character-select {
                 flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .game-stats {
-                justify-content: space-between;
-            }
-            
-            .character-select {
-                grid-template-columns: repeat(2, 1fr);
+                align-items: center;
             }
             
             .shop {
-                grid-template-columns: 1fr;
+                flex-direction: column;
+                align-items: center;
             }
             
-            .action-buttons {
-                grid-template-columns: repeat(2, 1fr);
+            .action-buttons, .utility-buttons {
+                flex-direction: column;
+                align-items: center;
             }
             
-            .utility-buttons {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-        
-        /* Tablet Optimizations */
-        @media (min-width: 601px) and (max-width: 1024px) {
-            .character-select {
-                grid-template-columns: repeat(4, 1fr);
+            .game-header {
+                flex-direction: column;
+                text-align: center;
             }
             
-            .shop {
-                grid-template-columns: repeat(3, 1fr);
+            .card {
+                width: 70px;
+                height: 105px;
+                font-size: 16px;
             }
         }
 
@@ -357,7 +522,15 @@
         .gold { background-color: #664d00; border: 3px solid #ffcc00; color: #ffcc00; background-image: linear-gradient(135deg, #664d00 50%, #332600 50%); box-shadow: 0 0 10px 2px rgba(255, 204, 0, 0.7); animation: glowEffectGold 1.5s infinite alternate; }
         @keyframes glowEffectGold { 0% { box-shadow: 0 0 10px 2px rgba(255, 204, 0, 0.5); } 100% { box-shadow: 0 0 20px 4px rgba(255, 204, 0, 1); } }
 
-        h1 { font-size: calc(24px + 2vw); text-transform: uppercase; letter-spacing: 4px; text-shadow: 0 0 20px rgba(0, 255, 255, 0.8); margin-bottom: 20px; }
+        h1 { 
+            font-size: 32px; 
+            text-transform: uppercase; 
+            letter-spacing: 4px; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 20px rgba(255, 215, 0, 0.8); 
+            margin-bottom: 20px;
+            color: #FFD700;
+            font-weight: bold;
+        }
         #log { 
             max-height: clamp(120px, 20vh, 200px); 
             overflow-y: auto; 
@@ -441,12 +614,27 @@
         .smuggler-icon { background-image: url('path-to-smuggler-icon.png'); }
         .bounty-hunter-icon { background-image: url('path-to-bounty-hunter-icon.png'); }
 
-        .action-buttons button, .utility-buttons button { border: 2px solid; transition: background-color 0.3s ease, border-color 0.3s ease; }
-        .jedi-theme .action-buttons button, .jedi-theme .utility-buttons button { border-color: rgba(0, 255, 255, 0.7); background-color: rgba(0, 0, 128, 0.7); }
-        .sith-theme .action-buttons button, .sith-theme .utility-buttons button { border-color: rgba(255, 0, 0, 0.7); background-color: rgba(128, 0, 0, 0.7); }
-        .smuggler-theme .action-buttons button, .smuggler-theme .utility-buttons button { border-color: rgba(255, 255, 0, 0.7); background-color: rgba(128, 128, 0, 0.7); }
-        .bounty-hunter-theme .action-buttons button, .bounty-hunter-theme .utility-buttons button { border-color: rgba(0, 255, 0, 0.7); background-color: rgba(0, 128, 0, 0.7); }
-        .action-buttons button:hover, .utility-buttons button:hover { box-shadow: 0 0 15px 5px rgba(255, 255, 255, 0.8); }
+        /* Character Theme Button Overrides - KOTOR Style */
+        .jedi-theme .action-buttons button, .jedi-theme .utility-buttons button { 
+            border-color: #4CAF50; 
+            background: linear-gradient(135deg, #2d5a2d, #1a3a1a);
+            color: #4CAF50;
+        }
+        .sith-theme .action-buttons button, .sith-theme .utility-buttons button { 
+            border-color: #f44336; 
+            background: linear-gradient(135deg, #5a2d2d, #3a1a1a);
+            color: #f44336;
+        }
+        .smuggler-theme .action-buttons button, .smuggler-theme .utility-buttons button { 
+            border-color: #FFD700; 
+            background: linear-gradient(135deg, #5a5a2d, #3a3a1a);
+            color: #FFD700;
+        }
+        .bounty-hunter-theme .action-buttons button, .bounty-hunter-theme .utility-buttons button { 
+            border-color: #2196F3; 
+            background: linear-gradient(135deg, #2d2d5a, #1a1a3a);
+            color: #2196F3;
+        }
 
         @media (max-width: 600px) {
             .card { width: 70px; height: 100px; font-size: 20px; }
@@ -641,46 +829,38 @@
         <div class="patron-silhouettes"></div>
         <div class="smoke-haze"></div>
     </div>
-    <div id="game-container" class="table-surface">
-        <!-- Header Section -->
+    <div id="game-container">
+        <h1><span class="sr-only">Pazaak Parlor</span><span aria-hidden="true">PAZAAK PARLOR</span></h1>
+        
+        <!-- Game Header - Credits and Score -->
         <div class="game-header">
-            <h1><span class="sr-only">Pazaak Parlor</span><span aria-hidden="true">Pazaak Parlor</span></h1>
+            <div class="game-info">
+                <div id="credits">Credits: 100</div>
+                <div id="wager" class="hidden">Current Wager: 10</div>
+            </div>
             
-            <div class="header-top">
-                <div class="game-info">
-                    <div id="credits">Credits: 100</div>
-                    <div id="wager" class="hidden">Current Wager: 10</div>
-                </div>
-                
-                <div class="game-stats">
-                    <p id="result"></p>
-                    <p id="score">Sets Won - Player: 0 | Computer: 0</p>
-                </div>
+            <div class="game-stats">
+                <p id="result"></p>
+                <p id="score">Sets Won - Player: 0 | Computer: 0</p>
             </div>
         </div>
 
-        <!-- Character Selection Section -->
-        <div class="menu-section">
-            <h3>Choose Your Character</h3>
-            <div class="character-select">
-                <div class="character" data-class="jedi">Jedi</div>
-                <div class="character" data-class="sith">Sith</div>
-                <div class="character" data-class="smuggler">Smuggler</div>
-                <div class="character" data-class="bounty-hunter">Bounty Hunter</div>
-            </div>
+        <!-- Character Selection -->
+        <div class="character-select">
+            <div class="character" data-class="jedi">Jedi</div>
+            <div class="character" data-class="sith">Sith</div>
+            <div class="character" data-class="smuggler">Smuggler</div>
+            <div class="character" data-class="bounty-hunter">Bounty Hunter</div>
         </div>
 
-        <!-- Shop Section -->
-        <div class="menu-section">
-            <h3>Power-ups Shop</h3>
-            <div class="shop">
-                <div class="power-up" data-power="foresight">Foresight (10 credits)</div>
-                <div class="power-up" data-power="mind-trick">Mind Trick (15 credits)</div>
-                <div class="power-up" data-power="sabotage">Sabotage (20 credits)</div>
-            </div>
+        <!-- Shop -->
+        <div class="shop">
+            <div class="power-up" data-power="foresight">Foresight (10 credits)</div>
+            <div class="power-up" data-power="mind-trick">Mind Trick (15 credits)</div>
+            <div class="power-up" data-power="sabotage">Sabotage (20 credits)</div>
         </div>
 
-        <!-- Game Board -->
+        <!-- Game Board - KOTOR Pazaak Table -->
         <div class="game-board">
             <div class="grid">
                 <div id="computer-area" style="position: relative;">
@@ -1655,24 +1835,32 @@
                 actionButtons.classList.add('jedi-theme'); 
                 utilityButtons.classList.add('jedi-theme');
                 iconContainer.className = 'character-icon jedi-icon'; 
+                playerArea.style.borderColor = '#4CAF50';
+                playerArea.style.boxShadow = '0 0 15px rgba(76, 175, 80, 0.5)';
             }
             else if (playerClass === 'sith') { 
                 playerArea.classList.add('sith-theme'); 
                 actionButtons.classList.add('sith-theme'); 
                 utilityButtons.classList.add('sith-theme');
                 iconContainer.className = 'character-icon sith-icon'; 
+                playerArea.style.borderColor = '#f44336';
+                playerArea.style.boxShadow = '0 0 15px rgba(244, 67, 54, 0.5)';
             }
             else if (playerClass === 'smuggler') { 
                 playerArea.classList.add('smuggler-theme'); 
                 actionButtons.classList.add('smuggler-theme'); 
                 utilityButtons.classList.add('smuggler-theme');
                 iconContainer.className = 'character-icon smuggler-icon'; 
+                playerArea.style.borderColor = '#FFD700';
+                playerArea.style.boxShadow = '0 0 15px rgba(255, 215, 0, 0.5)';
             }
             else if (playerClass === 'bounty-hunter') { 
                 playerArea.classList.add('bounty-hunter-theme'); 
                 actionButtons.classList.add('bounty-hunter-theme'); 
                 utilityButtons.classList.add('bounty-hunter-theme');
                 iconContainer.className = 'character-icon bounty-hunter-icon'; 
+                playerArea.style.borderColor = '#2196F3';
+                playerArea.style.boxShadow = '0 0 15px rgba(33, 150, 243, 0.5)';
             }
             playerArea.appendChild(iconContainer);
         }
