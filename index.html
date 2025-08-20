@@ -117,6 +117,7 @@
         .character:hover, .power-up:hover { background-color: rgba(0, 255, 255, 0.2); }
         .selected { background-color: rgba(0, 255, 255, 0.4); }
         #credits { font-size: calc(14px + 1vw); margin-top: 10px; color: #ffcc00; }
+        #wager { font-size: calc(12px + 0.8vw); margin-top: 4px; color: #ffc857; }
         h2 { font-size: calc(18px + 1vw); margin-bottom: 10px; text-shadow: 0 0 10px rgba(0, 255, 255, 0.8); }
         .buttons-container { display: flex; flex-wrap: wrap; justify-content: center; }
 
@@ -273,6 +274,9 @@
         .settings-row input[type="range"] {
             width: 60%;
         }
+        /* Screen reader utility */
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
         /* Theme toggles */
         .theme-space .cantina-stage { display: none !important; }
         .theme-cantina .galaxy-background, .theme-cantina .nebula, .theme-cantina body::before { display: none !important; }
@@ -383,6 +387,7 @@
         </div>
 
         <div id="credits">Credits: 100</div>
+        <div id="wager" class="hidden">Current Wager: 10</div>
         <p id="result"></p>
         <p id="score">Sets Won - Player: 0 | Computer: 0</p>
 
@@ -455,6 +460,26 @@
             <div class="settings-row">
                 <label for="colorblindMode">Colorblind-friendly markers</label>
                 <input id="colorblindMode" type="checkbox">
+            </div>
+            <div class="settings-row">
+                <label for="useWagers">Enable wagers</label>
+                <input id="useWagers" type="checkbox">
+            </div>
+            <div class="settings-row">
+                <label for="wagerAmount">Wager amount</label>
+                <input id="wagerAmount" type="number" min="5" max="1000" step="5" value="10">
+            </div>
+            <div class="settings-row">
+                <label for="modifierLuckyStart">Lucky Start (begin at +1)</label>
+                <input id="modifierLuckyStart" type="checkbox">
+            </div>
+            <div class="settings-row">
+                <label for="modifierSwapAtStart">Swap At Start (swap last openers)</label>
+                <input id="modifierSwapAtStart" type="checkbox">
+            </div>
+            <div class="settings-row">
+                <label for="precisionBonus">Precision bonus (exact 20)</label>
+                <input id="precisionBonus" type="checkbox" checked>
             </div>
             <button id="closeSettings" class="modal-button">Close</button>
         </div>
@@ -551,6 +576,8 @@
         let gameOver = false;
         // Pazaak dealer advantage
         let dealer = 'player';
+        // House modifiers per set
+        let swapAppliedThisSet = false;
 
         // Preferences
         let animationSpeedMultiplier = 1;
@@ -561,6 +588,13 @@
         // UI Theme and music
         let uiTheme = 'cantina'; // 'space' | 'cantina'
         let musicEnabled = false;
+        // House rules & wagering
+        let useWagers = false;
+        let wagerAmount = 10;
+        let modifierLuckyStart = false;
+        let modifierSwapAtStart = false;
+        let precisionBonusEnabled = true;
+        let precisionBonusPending = false;
 
         // Stats
         let stats = {
@@ -807,6 +841,7 @@
             playerStood = false; computerStood = false; forcePushUsed = false; forcePullUsed = false;
             playerFrozenTurns = 0; computerFrozenTurns = 0; powerUpsDisabledTurns = 0; eventActive = null;
             playerSideCardPlayedThisTurn = false; computerSideCardPlayedThisTurn = false;
+            precisionBonusPending = false;
             document.querySelector('.character-select').classList.add('hidden');
             document.getElementById('result').textContent = '';
             document.getElementById('end-turn-btn').disabled = false;
@@ -814,6 +849,10 @@
             document.getElementById('use-power-btn').disabled = !playerClass && !activePowerUp;
             document.getElementById('log').innerHTML = '';
             updateDealerIndicator();
+            // House rule modifiers
+            if (modifierLuckyStart) { playerTotal += 1; logMessage('Lucky Start: You begin at +1.'); }
+            if (modifierSwapAtStart) { logMessage('Swap At Start enabled: opener swap will apply.'); }
+            swapAppliedThisSet = false;
             updateHandDisplay(document.getElementById('player-hand'), playerHand, playerTotal);
             playBeep(520, 0.04, 0.02);
             updateHandDisplay(document.getElementById('computer-hand'), computerHand, computerTotal);
@@ -908,7 +947,20 @@
             } else if (currentTurn === 'computer' && !computerStood) {
                 document.getElementById('computer-overlay').style.display = 'flex';
                 disablePlayerControls();
-                setTimeout(computerPlay, reducedMotion ? 0 : 600 / Math.max(0.1, animationSpeedMultiplier));
+                setTimeout(() => {
+                    // Optional opener swap modifier: swap last openers once per set
+                    if (modifierSwapAtStart && !swapAppliedThisSet && playerHand.length <= 1 && computerHand.length <= 1) {
+                        const p = playerHand.pop(); const c = computerHand.pop();
+                        if (p) { playerTotal -= p.value; }
+                        if (c) { computerTotal -= c.value; }
+                        if (p) { computerHand.push(p); computerTotal += p.value; }
+                        if (c) { playerHand.push(c); playerTotal += c.value; }
+                        swapAppliedThisSet = true; logMessage('Opener swap: last opening cards were swapped.');
+                        updateHandDisplay(document.getElementById('player-hand'), playerHand, playerTotal);
+                        updateHandDisplay(document.getElementById('computer-hand'), computerHand, computerTotal);
+                    }
+                    computerPlay();
+                }, reducedMotion ? 0 : 600 / Math.max(0.1, animationSpeedMultiplier));
             } else {
                 endSet();
             }
@@ -1161,8 +1213,18 @@
                 else { result = "It's a tie! No one wins the set."; }
             }
 
+            // Precision bonus: flag if player has exactly 20 at set end
+            precisionBonusPending = precisionBonusEnabled && playerTotal === 20;
+
+            // Credits and wagers
             if (playerTotal <= 20 && (playerTotal > computerTotal || computerTotal > 20)) {
-                const creditsWon = 20 + playerTotal; playerCredits += creditsWon; logMessage(`You won ${creditsWon} credits!`);
+                let creditsWon = 20 + playerTotal;
+                if (useWagers) creditsWon += wagerAmount;
+                if (precisionBonusEnabled && precisionBonusPending) { creditsWon += 10; logMessage('Precision bonus: +10 credits for exact 20!'); }
+                playerCredits += creditsWon; logMessage(`You won ${creditsWon} credits!`);
+            } else if (useWagers && (computerTotal <= 20 && (computerTotal > playerTotal || playerTotal > 20))) {
+                const loss = Math.min(playerCredits, wagerAmount);
+                if (loss > 0) { playerCredits -= loss; logMessage(`You lost ${loss} credits on the wager.`); }
             }
             updateCreditsDisplay();
             document.getElementById('result').textContent = result;
@@ -1246,6 +1308,13 @@
         document.getElementById('difficultySelect').addEventListener('change', (e) => { difficulty = e.target.value; persistProgress(); });
         document.getElementById('colorblindMode').addEventListener('change', (e) => { colorblindMode = e.target.checked; updateHandDisplay(document.getElementById('player-hand'), playerHand, playerTotal); updateHandDisplay(document.getElementById('computer-hand'), computerHand, computerTotal); persistProgress(); });
 
+        // House rules controls
+        document.getElementById('useWagers').addEventListener('change', (e) => { useWagers = e.target.checked; document.getElementById('wager').classList.toggle('hidden', !useWagers); persistProgress(); });
+        document.getElementById('wagerAmount').addEventListener('input', (e) => { wagerAmount = Math.max(5, Math.min(1000, parseInt(e.target.value || '10', 10))); document.getElementById('wager').textContent = `Current Wager: ${wagerAmount}`; persistProgress(); });
+        document.getElementById('modifierLuckyStart').addEventListener('change', (e) => { modifierLuckyStart = e.target.checked; persistProgress(); });
+        document.getElementById('modifierSwapAtStart').addEventListener('change', (e) => { modifierSwapAtStart = e.target.checked; persistProgress(); });
+        document.getElementById('precisionBonus').addEventListener('change', (e) => { precisionBonusEnabled = e.target.checked; persistProgress(); });
+
         // Help & Achievements
         document.getElementById('help-btn').addEventListener('click', () => { document.getElementById('helpModal').style.display = 'block'; });
         document.getElementById('closeHelp').addEventListener('click', () => { document.getElementById('helpModal').style.display = 'none'; });
@@ -1266,7 +1335,8 @@
         function persistProgress() {
             const data = {
                 playerCredits, playerSetsWon, computerSetsWon, playerClass, activePowerUp,
-                soundEnabled, difficulty, colorblindMode, stats, uiTheme, musicEnabled
+                soundEnabled, difficulty, colorblindMode, stats, uiTheme, musicEnabled,
+                useWagers, wagerAmount, modifierLuckyStart, modifierSwapAtStart, precisionBonusEnabled
             };
             try { localStorage.setItem('deckshift_progress', JSON.stringify(data)); } catch (e) {}
         }
@@ -1285,6 +1355,11 @@
                 if (typeof data.difficulty === 'string') difficulty = data.difficulty;
                 if (typeof data.uiTheme === 'string') uiTheme = data.uiTheme;
                 if (typeof data.musicEnabled === 'boolean') musicEnabled = data.musicEnabled;
+                if (typeof data.useWagers === 'boolean') useWagers = data.useWagers;
+                if (typeof data.wagerAmount === 'number') wagerAmount = data.wagerAmount;
+                if (typeof data.modifierLuckyStart === 'boolean') modifierLuckyStart = data.modifierLuckyStart;
+                if (typeof data.modifierSwapAtStart === 'boolean') modifierSwapAtStart = data.modifierSwapAtStart;
+                if (typeof data.precisionBonusEnabled === 'boolean') precisionBonusEnabled = data.precisionBonusEnabled;
                 if (data.stats && typeof data.stats === 'object') stats = { ...stats, ...data.stats };
             } catch (e) {}
         }
@@ -1414,6 +1489,16 @@
         document.getElementById('soundToggle').checked = soundEnabled;
         document.getElementById('difficultySelect').value = difficulty;
         document.getElementById('colorblindMode').checked = colorblindMode;
+        // House rules UI
+        document.getElementById('useWagers').checked = useWagers;
+        document.getElementById('wagerAmount').value = String(wagerAmount);
+        document.getElementById('modifierLuckyStart').checked = modifierLuckyStart;
+        document.getElementById('modifierSwapAtStart').checked = modifierSwapAtStart;
+        document.getElementById('precisionBonus').checked = precisionBonusEnabled;
+        document.getElementById('wager').classList.toggle('hidden', !useWagers);
+        document.getElementById('wager').textContent = `Current Wager: ${wagerAmount}`;
+        // Theme
+        applyUiTheme(); ensureMusic();
         if (playerClass) { selectCharacter(playerClass); }
         syncAchievementsFromStorage();
         updateTotalsAndBars();
