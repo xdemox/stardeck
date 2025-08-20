@@ -140,6 +140,7 @@
 
         .hidden { display: none; }
         .character-select.disabled { pointer-events: none; opacity: 0.5; }
+        .shop.disabled { pointer-events: none; opacity: 0.5; }
 
         @keyframes particleBurst { 0% { transform: scale(0); opacity: 1; } 100% { transform: scale(3); opacity: 0; } }
         .win-particles { position: absolute; top: 50%; left: 50%; width: 10px; height: 10px; background-color: #00ff00; border-radius: 50%; animation: particleBurst 1s forwards; pointer-events: none; }
@@ -412,20 +413,32 @@
         <div id="event-indicator"></div>
 
         <div class="buttons-container">
-            <button id="new-game-btn">New Game</button>
-            <button id="end-turn-btn" disabled="true">End Turn</button>
-            <button id="stand-btn" disabled="true">Stand</button>
-            <button id="use-power-btn" disabled>Use Power</button>
-            <button id="mulligan-btn" disabled title="Redraw your 4-card side hand (once per set)">Mulligan Side</button>
-            <button id="reroll-btn" disabled title="Reroll your last main draw (once per set)">Reroll Last</button>
-            <button id="settings-btn" aria-label="Open Settings">Settings</button>
-            <button id="help-btn" aria-label="How to Play">Help</button>
-            <button id="achievements-btn" aria-label="Achievements">Achievements</button>
-            <button id="stats-btn" aria-label="Statistics">Stats</button>
-            <button id="deck-btn" aria-label="Deck Builder">Deck</button>
+            <button id="new-game-btn" class="tooltip" data-tip="Start a new set (or match if finished)">New Game</button>
+            <button id="end-turn-btn" class="tooltip" data-tip="End your turn" disabled="true">End Turn</button>
+            <button id="stand-btn" class="tooltip" data-tip="Stand and stop drawing" disabled="true">Stand</button>
+            <button id="use-power-btn" class="tooltip" data-tip="Use your class power or purchased power-up" disabled>Use Power</button>
+            <button id="mulligan-btn" class="tooltip" data-tip="Redraw your 4-card side hand (once per set)" disabled>Mulligan Side</button>
+            <button id="reroll-btn" class="tooltip" data-tip="Reroll your last main draw (once per set)" disabled>Reroll Last</button>
+            <button id="settings-btn" class="tooltip" data-tip="Adjust settings" aria-label="Open Settings">Settings</button>
+            <button id="help-btn" class="tooltip" data-tip="How to play" aria-label="How to Play">Help</button>
+            <button id="achievements-btn" class="tooltip" data-tip="View achievements" aria-label="Achievements">Achievements</button>
+            <button id="stats-btn" class="tooltip" data-tip="View your statistics" aria-label="Statistics">Stats</button>
+            <button id="deck-btn" class="tooltip" data-tip="Open the deck builder" aria-label="Deck Builder">Deck</button>
         </div>
 
         <div id="log"></div>
+    </div>
+
+    <div id="welcomeModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+        <div class="modal-content">
+            <h3 id="welcomeTitle">Welcome to Pazaak Parlor</h3>
+            <div style="text-align:left; line-height:1.5; margin:8px 0 12px;">
+                <p>Pick a character class, then press New Game. Reach 20 without busting. Win 3 sets to take the match.</p>
+                <p>Shortcuts: N = New, E = End Turn, S = Stand, P = Use Power.</p>
+            </div>
+            <button id="welcomeStart" class="modal-button">Let's Play</button>
+            <button id="welcomeHelp" class="modal-button">How to Play</button>
+        </div>
     </div>
 
     <div id="plusMinusModal" class="modal">
@@ -956,6 +969,8 @@
             document.querySelectorAll('.character').forEach(el => el.disabled = true);
             document.getElementById('new-game-btn').disabled = true;
             document.querySelectorAll('.card').forEach(el => el.style.pointerEvents = 'none');
+            const shop = document.querySelector('.shop'); if (shop) shop.classList.add('disabled');
+            const csel = document.querySelector('.character-select'); if (csel) csel.classList.add('disabled');
         }
         function enablePlayerControls() {
             document.getElementById('end-turn-btn').disabled = false;
@@ -967,14 +982,19 @@
             document.querySelectorAll('.character').forEach(el => el.disabled = false);
             document.getElementById('new-game-btn').disabled = false;
             document.querySelectorAll('.card').forEach(el => el.style.pointerEvents = 'auto');
+            const shop = document.querySelector('.shop'); if (shop) shop.classList.remove('disabled');
+            const csel = document.querySelector('.character-select'); if (csel) csel.classList.remove('disabled');
         }
 
         function playTurn() {
             updateTurnIndicator();
             if (currentTurn === 'player' && !playerStood) {
+                // Allow one side card per turn; reset allowance at start of the player's turn
+                playerSideCardPlayedThisTurn = false;
                 if (playerFrozenTurns > 0) {
-                    logMessage('Cards are frozen. You cannot draw this turn.');
-                    playerStood = true;
+                    logMessage('Cards are frozen. Your draw is skipped this turn.');
+                    checkForRandomEvent();
+                    tickEventDurations();
                     currentTurn = 'computer';
                     playTurn();
                     return;
@@ -986,10 +1006,11 @@
                 updateHandDisplay(document.getElementById('player-hand'), playerHand, playerTotal);
                 logMessage(`You drew a ${card.value} (${card.type})`);
                 playBeep(660, 0.05, 0.02);
-                playerSideCardPlayedThisTurn = false; // reset side-card allowance per turn
                 if (playerTotal > 20) endSet();
                 else if (playerTotal === 20) stand();
             } else if (currentTurn === 'computer' && !computerStood) {
+                // Reset computer's side-card allowance at the start of its turn
+                computerSideCardPlayedThisTurn = false;
                 document.getElementById('computer-overlay').style.display = 'flex';
                 disablePlayerControls();
                 setTimeout(() => {
@@ -1074,8 +1095,7 @@
 
         function computerPlay() {
             if (computerFrozenTurns > 0) {
-                logMessage('Computer cannot draw due to frozen cards.');
-                computerStood = true;
+                logMessage('Computer skips draw due to frozen cards.');
             } else {
                 const card = drawMainCard();
                 computerHand.push(card);
@@ -1138,9 +1158,21 @@
 
         function stand() {
             if (currentTurn === 'player') {
-                playerStood = true; logMessage('You stood.'); currentTurn = 'computer'; playTurn();
+                playerStood = true;
+                logMessage('You stood.');
+                currentTurn = 'computer';
+                playTurn();
             } else {
-                computerStood = true; logMessage('Computer stood.'); document.getElementById('computer-overlay').style.display = 'none'; enablePlayerControls(); endSet();
+                computerStood = true;
+                logMessage('Computer stood.');
+                document.getElementById('computer-overlay').style.display = 'none';
+                enablePlayerControls();
+                if (playerStood) {
+                    endSet();
+                } else {
+                    currentTurn = 'player';
+                    playTurn();
+                }
             }
         }
 
@@ -1271,9 +1303,10 @@
             else if (playerTotal > computerTotal) { result = 'You win the set!'; triggerWinAnimation(); playerSetsWon++; stats.setsWon++; stats.currentStreak++; stats.bestStreak = Math.max(stats.bestStreak, stats.currentStreak); }
             else if (computerTotal > playerTotal) { result = 'Computer wins the set!'; triggerLoseAnimation(); computerSetsWon++; stats.setsLost++; stats.currentStreak = 0; }
             else {
-                if (playerSideDeck.some(card => card.type === 'gold' && card.subtype === 'tiebreaker')) { result = "It's a tie, but you have the tiebreaker! You win the set."; triggerWinAnimation(); playerSetsWon++; }
-                else if (computerSideDeck.some(card => card.type === 'gold' && card.subtype === 'tiebreaker')) { result = "It's a tie, but the computer has the tiebreaker! Computer wins the set."; triggerLoseAnimation(); computerSetsWon++; }
-                else { result = "It's a tie! No one wins the set."; }
+                if (playerSideDeck.some(card => card.type === 'gold' && card.subtype === 'tiebreaker')) { result = "It's a tie, but you have the tiebreaker! You win the set."; triggerWinAnimation(); playerSetsWon++; stats.setsWon++; stats.currentStreak++; stats.bestStreak = Math.max(stats.bestStreak, stats.currentStreak); }
+                else if (computerSideDeck.some(card => card.type === 'gold' && card.subtype === 'tiebreaker')) { result = "It's a tie, but the computer has the tiebreaker! Computer wins the set."; triggerLoseAnimation(); computerSetsWon++; stats.setsLost++; stats.currentStreak = 0; }
+                else if (dealer === 'player') { result = "It's a tie, dealer advantage! You win the set."; triggerWinAnimation(); playerSetsWon++; stats.setsWon++; stats.currentStreak++; stats.bestStreak = Math.max(stats.bestStreak, stats.currentStreak); }
+                else { result = "It's a tie, dealer advantage! Computer wins the set."; triggerLoseAnimation(); computerSetsWon++; stats.setsLost++; stats.currentStreak = 0; }
             }
 
             // Precision bonus: flag if player has exactly 20 at set end
@@ -1560,6 +1593,17 @@
             if (currentTurn === 'player' && computerTotal >= 17 && playerTotal > computerTotal && playerTotal <= 20) completeAchievement('comeback');
         }
 
+        // Welcome modal actions
+        document.getElementById('welcomeStart').addEventListener('click', () => {
+            document.getElementById('welcomeModal').style.display = 'none';
+            try { localStorage.setItem('deckshift_seen_welcome', '1'); } catch(e) {}
+        });
+        document.getElementById('welcomeHelp').addEventListener('click', () => {
+            document.getElementById('welcomeModal').style.display = 'none';
+            document.getElementById('helpModal').style.display = 'block';
+            try { localStorage.setItem('deckshift_seen_welcome', '1'); } catch(e) {}
+        });
+
         // Load saved data and initialize UI
         loadProgress();
         updateCreditsDisplay();
@@ -1582,6 +1626,16 @@
 
         updateCreditsDisplay();
         updateTotalsAndBars();
+
+        // Show welcome for first-time players or if no class is selected yet
+        (function maybeShowWelcome(){
+            let seen = false;
+            try { seen = !!localStorage.getItem('deckshift_seen_welcome'); } catch(e) {}
+            if (!seen || !playerClass) {
+                const w = document.getElementById('welcomeModal');
+                if (w) w.style.display = 'block';
+            }
+        })();
     </script>
 </body>
 </html>
