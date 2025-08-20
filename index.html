@@ -74,34 +74,282 @@
             background-size: 100px 100px, 150px 150px, 200px 200px; animation: starAnimation 60s linear infinite; opacity: 0.3; z-index: -1;
         }
 
-        #game-container { max-width: 1200px; margin: auto; padding: 20px; text-align: center; }
-        .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
-        @media (min-height: 800px) { body { justify-content: center; } }
-        @media (min-width: 768px) { .grid { grid-template-columns: repeat(2, 1fr); } }
-        @media screen and (min-width: 320px) { html { font-size: calc(16px + 6 * ((100vw - 320px) / 680)); } }
-        @media screen and (min-width: 1000px) { html { font-size: 22px; } }
+        /* Responsive Layout System */
+        #game-container { 
+            max-width: 1400px; 
+            margin: auto; 
+            padding: clamp(10px, 2vw, 30px); 
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            gap: clamp(10px, 2vw, 20px);
+        }
+        
+        /* Header Section */
+        .game-header {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(8px, 1.5vw, 15px);
+            margin-bottom: clamp(10px, 2vw, 20px);
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: clamp(8px, 1.5vw, 15px);
+        }
+        
+        .game-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            text-align: left;
+        }
+        
+        .game-stats {
+            display: flex;
+            gap: clamp(10px, 2vw, 20px);
+            justify-content: center;
+            flex-wrap: wrap;
+            font-size: clamp(12px, 2.5vw, 16px);
+        }
+        
+        /* Menu Sections */
+        .menu-section {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: clamp(12px, 2vw, 20px);
+            margin-bottom: clamp(10px, 2vw, 20px);
+        }
+        
+        .menu-section h3 {
+            margin: 0 0 clamp(8px, 1.5vw, 15px) 0;
+            font-size: clamp(14px, 2.5vw, 18px);
+            color: #00ffff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        /* Character Selection */
+        .character-select { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: clamp(8px, 1.5vw, 15px);
+            margin-bottom: clamp(10px, 2vw, 20px);
+        }
+        
+        .character { 
+            cursor: pointer; 
+            padding: clamp(10px, 2vw, 15px); 
+            border: 2px solid #00ffff; 
+            border-radius: 8px; 
+            transition: all 0.3s ease; 
+            font-size: clamp(12px, 2.5vw, 16px);
+            text-align: center;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .character:hover { 
+            background-color: rgba(0, 255, 255, 0.2); 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 255, 255, 0.3);
+        }
+        .character.selected { 
+            background-color: rgba(0, 255, 255, 0.4); 
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+        }
+        
+        /* Shop Section */
+        .shop { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: clamp(8px, 1.5vw, 15px);
+            margin-bottom: clamp(10px, 2vw, 20px);
+        }
+        
+        .power-up { 
+            cursor: pointer; 
+            padding: clamp(8px, 1.5vw, 12px); 
+            border: 1px solid #00ffff; 
+            border-radius: 6px; 
+            transition: background-color 0.3s ease; 
+            font-size: clamp(11px, 2.2vw, 14px);
+            text-align: center;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .power-up:hover { 
+            background-color: rgba(0, 255, 255, 0.2); 
+            transform: translateY(-1px);
+        }
+        
+        /* Game Board */
+        .game-board {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(10px, 2vw, 20px);
+        }
+        
+        .grid { 
+            display: grid; 
+            grid-template-columns: 1fr; 
+            gap: clamp(15px, 3vw, 30px);
+            margin-bottom: clamp(10px, 2vw, 20px);
+        }
+        
+        @media (min-width: 768px) { 
+            .grid { 
+                grid-template-columns: repeat(2, 1fr); 
+            }
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: clamp(6px, 1vw, 12px);
+            margin-bottom: clamp(10px, 2vw, 20px);
+        }
+        
+        .utility-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: clamp(6px, 1vw, 12px);
+        }
+        
+        /* Responsive Typography */
+        @media screen and (min-width: 320px) { 
+            html { font-size: calc(14px + 4 * ((100vw - 320px) / 680)); } 
+        }
+        @media screen and (min-width: 1000px) { 
+            html { font-size: 18px; 
+        }
+        
+        /* Mobile Optimizations */
+        @media (max-width: 600px) {
+            .header-top {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .game-stats {
+                justify-content: space-between;
+            }
+            
+            .character-select {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .shop {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .utility-buttons {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        /* Tablet Optimizations */
+        @media (min-width: 601px) and (max-width: 1024px) {
+            .character-select {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .shop {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
 
-        .hand { display: flex; justify-content: center; flex-wrap: wrap; min-height: 120px; position: relative; }
+        .hand { 
+            display: flex; 
+            justify-content: center; 
+            flex-wrap: wrap; 
+            min-height: clamp(100px, 15vw, 140px); 
+            position: relative;
+            gap: clamp(4px, 1vw, 8px);
+            padding: clamp(8px, 1.5vw, 15px);
+        }
         .card {
-            width: 15%; min-width: 60px; aspect-ratio: 2/3; background-color: #001a1a;
-            border: 2px solid #00ffff; border-radius: 5px; margin: 5px; line-height: normal;
-            font-size: calc(12px + 1vw); display: flex; align-items: center; justify-content: center; color: #00ffff;
-            position: relative; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer;
+            width: clamp(60px, 12vw, 100px); 
+            height: clamp(90px, 18vw, 150px);
+            background-color: #001a1a;
+            border: 2px solid #00ffff; 
+            border-radius: 6px; 
+            margin: 0; 
+            line-height: normal;
+            font-size: clamp(12px, 2.5vw, 18px); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: #00ffff;
+            position: relative; 
+            transition: transform 0.3s ease, box-shadow 0.3s ease; 
+            cursor: pointer;
+            flex-shrink: 0;
         }
         .card:hover { transform: translateY(-10px) scale(1.05); box-shadow: 0 0 20px rgba(0, 255, 255, 0.8); }
         .card .subtype { position: absolute; bottom: 5px; left: 5px; font-size: 70%; }
-        .side-deck { display: flex; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+        .side-deck { 
+            display: flex; 
+            justify-content: center; 
+            flex-wrap: wrap; 
+            margin-top: clamp(8px, 1.5vw, 15px);
+            gap: clamp(4px, 1vw, 8px);
+            padding: clamp(8px, 1.5vw, 15px);
+            min-height: clamp(80px, 12vw, 120px);
+        }
 
         button {
-            background-color: #003333; border: 2px solid #00ffff; color: #00ffff; padding: 10px 20px;
-            font-size: calc(10px + 1vw); margin: 4px 2px; cursor: pointer; border-radius: 5px;
-            transition: background-color 0.3s ease, box-shadow 0.3s ease; font-family: 'Orbitron', sans-serif;
-            text-transform: uppercase; letter-spacing: 2px; flex: 1 1 auto; min-width: 150px;
+            background-color: #003333; 
+            border: 2px solid #00ffff; 
+            color: #00ffff; 
+            padding: clamp(8px, 1.5vw, 12px) clamp(12px, 2vw, 20px);
+            font-size: clamp(10px, 2vw, 14px); 
+            margin: 0; 
+            cursor: pointer; 
+            border-radius: 6px;
+            transition: all 0.3s ease; 
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            font-weight: 500;
+            min-height: clamp(36px, 6vw, 44px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            white-space: nowrap;
         }
-        button:hover { background-color: #004d4d; box-shadow: 0 0 15px rgba(0, 255, 255, 0.8); }
-        button:disabled { background-color: #001a1a; color: #004d4d; cursor: not-allowed; border-color: #004d4d; }
+        button:hover { 
+            background-color: #004d4d; 
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.8); 
+            transform: translateY(-1px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button:disabled { 
+            background-color: #001a1a; 
+            color: #004d4d; 
+            cursor: not-allowed; 
+            border-color: #004d4d; 
+            transform: none;
+            box-shadow: none;
+        }
 
-        #result, #score, #total { font-size: calc(14px + 1vw); margin-top: 10px; text-shadow: 0 0 10px rgba(0, 255, 255, 0.8); }
+        #result, #score, #total { 
+            font-size: clamp(12px, 2.5vw, 16px); 
+            margin: 0; 
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+            font-weight: 500;
+        }
 
         .green { background-color: #004d00; border: 3px solid #00ff00; color: #00ff00; background-image: linear-gradient(135deg, #004d00 50%, #003300 50%); }
         .blue { background-color: #000066; border: 3px solid #0000ff; color: #0000ff; background-image: linear-gradient(135deg, #000066 50%, #000033 50%); }
@@ -110,22 +358,39 @@
         @keyframes glowEffectGold { 0% { box-shadow: 0 0 10px 2px rgba(255, 204, 0, 0.5); } 100% { box-shadow: 0 0 20px 4px rgba(255, 204, 0, 1); } }
 
         h1 { font-size: calc(24px + 2vw); text-transform: uppercase; letter-spacing: 4px; text-shadow: 0 0 20px rgba(0, 255, 255, 0.8); margin-bottom: 20px; }
-        #log { max-height: 150px; overflow-y: auto; margin-top: 10px; padding: 10px; background-color: rgba(0, 255, 255, 0.1); border-radius: 5px; font-size: calc(10px + 0.5vw); }
-
-        .character-select, .shop { display: flex; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
-        .character, .power-up { cursor: pointer; padding: 10px; border: 1px solid #00ffff; border-radius: 5px; transition: background-color 0.3s ease; margin: 5px; min-width: 120px; font-size: calc(12px + 0.5vw); text-align: center; }
-        .character:hover, .power-up:hover { background-color: rgba(0, 255, 255, 0.2); }
-        .selected { background-color: rgba(0, 255, 255, 0.4); }
-        #credits { font-size: calc(14px + 1vw); margin-top: 10px; color: #ffcc00; }
-        #wager { font-size: calc(12px + 0.8vw); margin-top: 4px; color: #ffc857; }
-        h2 { font-size: calc(18px + 1vw); margin-bottom: 10px; text-shadow: 0 0 10px rgba(0, 255, 255, 0.8); }
-        .buttons-container { display: flex; flex-wrap: wrap; justify-content: center; }
-
-        @media (max-width: 480px) {
-            .card { font-size: calc(10px + 1vw); }
-            #log { font-size: calc(8px + 0.5vw); }
-            button { min-width: 100px; }
+        #log { 
+            max-height: clamp(120px, 20vh, 200px); 
+            overflow-y: auto; 
+            margin-top: clamp(8px, 1.5vw, 15px); 
+            padding: clamp(8px, 1.5vw, 15px); 
+            background-color: rgba(0, 255, 255, 0.1); 
+            border-radius: 6px; 
+            font-size: clamp(10px, 2vw, 14px);
+            border: 1px solid rgba(0, 255, 255, 0.2);
         }
+
+        .selected { background-color: rgba(0, 255, 255, 0.4); }
+        #credits { 
+            font-size: clamp(14px, 2.5vw, 18px); 
+            margin: 0; 
+            color: #ffcc00; 
+            font-weight: 600;
+        }
+        #wager { 
+            font-size: clamp(12px, 2vw, 16px); 
+            margin: 0; 
+            color: #ffc857; 
+            font-weight: 500;
+        }
+        h2 { 
+            font-size: clamp(16px, 3vw, 22px); 
+            margin-bottom: clamp(8px, 1.5vw, 15px); 
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+
 
         .modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.8); }
         .modal-content { background-color: #000; margin: 15% auto; padding: 20px; border: 1px solid #00ffff; width: 80%; max-width: 400px; color: #00ffff; text-align: center; position: relative; animation: slideDown 0.5s; }
@@ -176,19 +441,24 @@
         .smuggler-icon { background-image: url('path-to-smuggler-icon.png'); }
         .bounty-hunter-icon { background-image: url('path-to-bounty-hunter-icon.png'); }
 
-        .buttons-container button { border: 2px solid; transition: background-color 0.3s ease, border-color 0.3s ease; }
-        .jedi-theme .buttons-container button { border-color: rgba(0, 255, 255, 0.7); background-color: rgba(0, 0, 128, 0.7); }
-        .sith-theme .buttons-container button { border-color: rgba(255, 0, 0, 0.7); background-color: rgba(128, 0, 0, 0.7); }
-        .smuggler-theme .buttons-container button { border-color: rgba(255, 255, 0, 0.7); background-color: rgba(128, 128, 0, 0.7); }
-        .bounty-hunter-theme .buttons-container button { border-color: rgba(0, 255, 0, 0.7); background-color: rgba(0, 128, 0, 0.7); }
-        .buttons-container button:hover { box-shadow: 0 0 15px 5px rgba(255, 255, 255, 0.8); }
+        .action-buttons button, .utility-buttons button { border: 2px solid; transition: background-color 0.3s ease, border-color 0.3s ease; }
+        .jedi-theme .action-buttons button, .jedi-theme .utility-buttons button { border-color: rgba(0, 255, 255, 0.7); background-color: rgba(0, 0, 128, 0.7); }
+        .sith-theme .action-buttons button, .sith-theme .utility-buttons button { border-color: rgba(255, 0, 0, 0.7); background-color: rgba(128, 0, 0, 0.7); }
+        .smuggler-theme .action-buttons button, .smuggler-theme .utility-buttons button { border-color: rgba(255, 255, 0, 0.7); background-color: rgba(128, 128, 0, 0.7); }
+        .bounty-hunter-theme .action-buttons button, .bounty-hunter-theme .utility-buttons button { border-color: rgba(0, 255, 0, 0.7); background-color: rgba(0, 128, 0, 0.7); }
+        .action-buttons button:hover, .utility-buttons button:hover { box-shadow: 0 0 15px 5px rgba(255, 255, 255, 0.8); }
 
         @media (max-width: 600px) {
-            button { padding: 20px 25px; font-size: 18px; width: 100%; }
             .card { width: 70px; height: 100px; font-size: 20px; }
-            .buttons-container { flex-direction: column; gap: 10px; }
             #log { font-size: 14px; max-height: 200px; }
             .side-deck .card { width: 60px; height: 90px; }
+            
+            /* Mobile-specific button adjustments */
+            .action-buttons button, .utility-buttons button {
+                padding: clamp(10px, 3vw, 15px) clamp(8px, 2vw, 12px);
+                font-size: clamp(10px, 3vw, 14px);
+                min-height: clamp(40px, 8vw, 50px);
+            }
         }
         #event-indicator { position: fixed; top: 50px; left: 50%; transform: translateX(-50%); padding: 10px 20px; background-color: rgba(255, 0, 0, 0.8); color: white; font-size: 18px; border-radius: 5px; text-align: center; display: none; }
         .frozen-card { opacity: 0.5; pointer-events: none; }
@@ -372,58 +642,84 @@
         <div class="smoke-haze"></div>
     </div>
     <div id="game-container" class="table-surface">
-        <h1><span class="sr-only">Pazaak Parlor</span><span aria-hidden="true">Pazaak Parlor</span></h1>
-
-        <div class="character-select">
-            <div class="character" data-class="jedi">Jedi</div>
-            <div class="character" data-class="sith">Sith</div>
-            <div class="character" data-class="smuggler">Smuggler</div>
-            <div class="character" data-class="bounty-hunter">Bounty Hunter</div>
-        </div>
-
-        <div class="shop">
-            <div class="power-up" data-power="foresight">Foresight (10 credits)</div>
-            <div class="power-up" data-power="mind-trick">Mind Trick (15 credits)</div>
-            <div class="power-up" data-power="sabotage">Sabotage (20 credits)</div>
-        </div>
-
-        <div id="credits">Credits: 100</div>
-        <div id="wager" class="hidden">Current Wager: 10</div>
-        <p id="result"></p>
-        <p id="score">Sets Won - Player: 0 | Computer: 0</p>
-
-        <div class="grid">
-            <div id="computer-area" style="position: relative;">
-                <h2>Computer</h2>
-                <div id="computer-hand" class="hand"></div>
-                <div id="computer-total">Computer Total: 0</div>
-                <div class="progress" aria-hidden="true"><div id="computer-bar" class="bar"></div></div>
-                <div id="computer-overlay">Computer is thinking...</div>
-            </div>
-
-            <div id="player-area">
-                <h2>You</h2>
-                <div id="player-hand" class="hand"></div>
-                <div id="player-total">Your Total: 0</div>
-                <div class="progress" aria-hidden="true"><div id="player-bar" class="bar"></div></div>
+        <!-- Header Section -->
+        <div class="game-header">
+            <h1><span class="sr-only">Pazaak Parlor</span><span aria-hidden="true">Pazaak Parlor</span></h1>
+            
+            <div class="header-top">
+                <div class="game-info">
+                    <div id="credits">Credits: 100</div>
+                    <div id="wager" class="hidden">Current Wager: 10</div>
+                </div>
+                
+                <div class="game-stats">
+                    <p id="result"></p>
+                    <p id="score">Sets Won - Player: 0 | Computer: 0</p>
+                </div>
             </div>
         </div>
 
-        <div id="side-deck" class="side-deck"></div>
-        <div id="event-indicator"></div>
+        <!-- Character Selection Section -->
+        <div class="menu-section">
+            <h3>Choose Your Character</h3>
+            <div class="character-select">
+                <div class="character" data-class="jedi">Jedi</div>
+                <div class="character" data-class="sith">Sith</div>
+                <div class="character" data-class="smuggler">Smuggler</div>
+                <div class="character" data-class="bounty-hunter">Bounty Hunter</div>
+            </div>
+        </div>
 
-        <div class="buttons-container">
-            <button id="new-game-btn" class="tooltip" data-tip="Start a new set (or match if finished)">New Game</button>
-            <button id="end-turn-btn" class="tooltip" data-tip="End your turn" disabled="true">End Turn</button>
-            <button id="stand-btn" class="tooltip" data-tip="Stand and stop drawing" disabled="true">Stand</button>
-            <button id="use-power-btn" class="tooltip" data-tip="Use your class power or purchased power-up" disabled>Use Power</button>
-            <button id="mulligan-btn" class="tooltip" data-tip="Redraw your 4-card side hand (once per set)" disabled>Mulligan Side</button>
-            <button id="reroll-btn" class="tooltip" data-tip="Reroll your last main draw (once per set)" disabled>Reroll Last</button>
-            <button id="settings-btn" class="tooltip" data-tip="Adjust settings" aria-label="Open Settings">Settings</button>
-            <button id="help-btn" class="tooltip" data-tip="How to play" aria-label="How to Play">Help</button>
-            <button id="achievements-btn" class="tooltip" data-tip="View achievements" aria-label="Achievements">Achievements</button>
-            <button id="stats-btn" class="tooltip" data-tip="View your statistics" aria-label="Statistics">Stats</button>
-            <button id="deck-btn" class="tooltip" data-tip="Open the deck builder" aria-label="Deck Builder">Deck</button>
+        <!-- Shop Section -->
+        <div class="menu-section">
+            <h3>Power-ups Shop</h3>
+            <div class="shop">
+                <div class="power-up" data-power="foresight">Foresight (10 credits)</div>
+                <div class="power-up" data-power="mind-trick">Mind Trick (15 credits)</div>
+                <div class="power-up" data-power="sabotage">Sabotage (20 credits)</div>
+            </div>
+        </div>
+
+        <!-- Game Board -->
+        <div class="game-board">
+            <div class="grid">
+                <div id="computer-area" style="position: relative;">
+                    <h2>Computer</h2>
+                    <div id="computer-hand" class="hand"></div>
+                    <div id="computer-total">Computer Total: 0</div>
+                    <div class="progress" aria-hidden="true"><div id="computer-bar" class="bar"></div></div>
+                    <div id="computer-overlay">Computer is thinking...</div>
+                </div>
+
+                <div id="player-area">
+                    <h2>You</h2>
+                    <div id="player-hand" class="hand"></div>
+                    <div id="player-total">Your Total: 0</div>
+                    <div class="progress" aria-hidden="true"><div id="player-bar" class="bar"></div></div>
+                </div>
+            </div>
+
+            <div id="side-deck" class="side-deck"></div>
+            <div id="event-indicator"></div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button id="new-game-btn" class="tooltip" data-tip="Start a new set (or match if finished)">New Game</button>
+                <button id="end-turn-btn" class="tooltip" data-tip="End your turn" disabled="true">End Turn</button>
+                <button id="stand-btn" class="tooltip" data-tip="Stand and stop drawing" disabled="true">Stand</button>
+                <button id="use-power-btn" class="tooltip" data-tip="Use your class power or purchased power-up" disabled>Use Power</button>
+                <button id="mulligan-btn" class="tooltip" data-tip="Redraw your 4-card side hand (once per set)" disabled>Mulligan Side</button>
+                <button id="reroll-btn" class="tooltip" data-tip="Reroll your last main draw (once per set)" disabled>Reroll Last</button>
+            </div>
+
+            <!-- Utility Buttons -->
+            <div class="utility-buttons">
+                <button id="settings-btn" class="tooltip" data-tip="Adjust settings" aria-label="Open Settings">Settings</button>
+                <button id="help-btn" class="tooltip" data-tip="How to play" aria-label="How to Play">Help</button>
+                <button id="achievements-btn" class="tooltip" data-tip="View achievements" aria-label="Achievements">Achievements</button>
+                <button id="stats-btn" class="tooltip" data-tip="View your statistics" aria-label="Statistics">Stats</button>
+                <button id="deck-btn" class="tooltip" data-tip="Open the deck builder" aria-label="Deck Builder">Deck</button>
+            </div>
         </div>
 
         <div id="log"></div>
@@ -1347,15 +1643,37 @@
 
         function applyCharacterTheme() {
             const playerArea = document.getElementById('player-area');
-            const buttonsContainer = document.querySelector('.buttons-container');
+            const actionButtons = document.querySelector('.action-buttons');
+            const utilityButtons = document.querySelector('.utility-buttons');
             const icon = playerArea.querySelector('.character-icon'); if (icon) icon.remove();
             playerArea.classList.remove('jedi-theme', 'sith-theme', 'smuggler-theme', 'bounty-hunter-theme');
-            buttonsContainer.classList.remove('jedi-theme', 'sith-theme', 'smuggler-theme', 'bounty-hunter-theme');
+            actionButtons.classList.remove('jedi-theme', 'sith-theme', 'smuggler-theme', 'bounty-hunter-theme');
+            utilityButtons.classList.remove('jedi-theme', 'sith-theme', 'smuggler-theme', 'bounty-hunter-theme');
             const iconContainer = document.createElement('div');
-            if (playerClass === 'jedi') { playerArea.classList.add('jedi-theme'); buttonsContainer.classList.add('jedi-theme'); iconContainer.className = 'character-icon jedi-icon'; }
-            else if (playerClass === 'sith') { playerArea.classList.add('sith-theme'); buttonsContainer.classList.add('sith-theme'); iconContainer.className = 'character-icon sith-icon'; }
-            else if (playerClass === 'smuggler') { playerArea.classList.add('smuggler-theme'); buttonsContainer.classList.add('smuggler-theme'); iconContainer.className = 'character-icon smuggler-icon'; }
-            else if (playerClass === 'bounty-hunter') { playerArea.classList.add('bounty-hunter-theme'); buttonsContainer.classList.add('bounty-hunter-theme'); iconContainer.className = 'character-icon bounty-hunter-icon'; }
+            if (playerClass === 'jedi') { 
+                playerArea.classList.add('jedi-theme'); 
+                actionButtons.classList.add('jedi-theme'); 
+                utilityButtons.classList.add('jedi-theme');
+                iconContainer.className = 'character-icon jedi-icon'; 
+            }
+            else if (playerClass === 'sith') { 
+                playerArea.classList.add('sith-theme'); 
+                actionButtons.classList.add('sith-theme'); 
+                utilityButtons.classList.add('sith-theme');
+                iconContainer.className = 'character-icon sith-icon'; 
+            }
+            else if (playerClass === 'smuggler') { 
+                playerArea.classList.add('smuggler-theme'); 
+                actionButtons.classList.add('smuggler-theme'); 
+                utilityButtons.classList.add('smuggler-theme');
+                iconContainer.className = 'character-icon smuggler-icon'; 
+            }
+            else if (playerClass === 'bounty-hunter') { 
+                playerArea.classList.add('bounty-hunter-theme'); 
+                actionButtons.classList.add('bounty-hunter-theme'); 
+                utilityButtons.classList.add('bounty-hunter-theme');
+                iconContainer.className = 'character-icon bounty-hunter-icon'; 
+            }
             playerArea.appendChild(iconContainer);
         }
 
