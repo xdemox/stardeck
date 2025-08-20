@@ -213,6 +213,24 @@
         .achievement-item:last-child { border-bottom: none; }
         .achievement-badge { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #00ffff; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; }
         .achievement-complete { background: #00ff88; color: #003333; border-color: #00ff88; }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+        }
+        .tooltip:hover::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: 100%; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.9);
+            color: #00ffff;
+            border: 1px solid #00ffff;
+            border-radius: 4px;
+            padding: 6px 8px;
+            white-space: nowrap;
+            font-size: 12px;
+            z-index: 10001;
+        }
     </style>
     <script>
         // Accessibility: keyboard shortcuts
@@ -275,6 +293,7 @@
             <button id="settings-btn" aria-label="Open Settings">Settings</button>
             <button id="help-btn" aria-label="How to Play">Help</button>
             <button id="achievements-btn" aria-label="Achievements">Achievements</button>
+            <button id="stats-btn" aria-label="Statistics">Stats</button>
         </div>
 
         <div id="log"></div>
@@ -345,6 +364,15 @@
         </div>
     </div>
 
+    <div id="statsModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="statsTitle">
+        <div class="modal-content">
+            <h3 id="statsTitle">Statistics</h3>
+            <div id="statsContent" style="text-align:left; line-height:1.7;"></div>
+            <button id="resetStats" class="modal-button">Reset Stats</button>
+            <button id="closeStats" class="modal-button">Close</button>
+        </div>
+    </div>
+
     <div id="animationContainer"></div>
 
     <script>
@@ -389,6 +417,35 @@
         let soundEnabled = true;
         let difficulty = 'normal';
         let colorblindMode = false;
+
+        // Stats
+        let stats = {
+            gamesPlayed: 0,
+            gamesWon: 0,
+            setsWon: 0,
+            setsLost: 0,
+            bestStreak: 0,
+            currentStreak: 0,
+            averagePlayerTotal: 0,
+            totalRounds: 0
+        };
+
+        // Simple SFX using WebAudio
+        let audioCtx;
+        function initAudio() {
+            if (!audioCtx) {
+                try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+            }
+        }
+        function playBeep(freq = 440, duration = 0.08, volume = 0.02) {
+            if (!soundEnabled || !audioCtx) return;
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.connect(g); g.connect(audioCtx.destination);
+            o.frequency.value = freq; o.type = 'sine';
+            g.gain.value = volume;
+            o.start(); setTimeout(() => { o.stop(); }, duration * 1000);
+        }
 
         // Events
         const randomEvents = [
@@ -486,7 +543,8 @@
             sideDeckElement.innerHTML = '';
             playerSideDeck.slice(0, 4).forEach(card => {
                 const cardElement = document.createElement('div');
-                cardElement.className = `card ${card.type}`;
+                cardElement.className = `card ${card.type} tooltip`;
+                cardElement.setAttribute('data-tip', card.type === 'green' ? 'Main Deck' : card.type === 'blue' ? 'Adds to your total' : card.type === 'red' ? 'Subtracts from your total' : (card.subtype || 'Special'));
                 cardElement.textContent = card.value;
                 if (card.subtype) {
                     const subtypeElement = document.createElement('div');
@@ -517,6 +575,7 @@
             if (!playerClass) { logMessage('Please select a character class.'); return; }
 
             buildDrawPile(); discardPile = [];
+            initAudio();
             playerHand = []; computerHand = [];
             playerSideDeck = createSideDeck(); computerSideDeck = createSideDeck();
             playerTotal = 0; computerTotal = 0; currentTurn = 'player';
@@ -529,6 +588,7 @@
             document.getElementById('use-power-btn').disabled = !playerClass && !activePowerUp;
             document.getElementById('log').innerHTML = '';
             updateHandDisplay(document.getElementById('player-hand'), playerHand, playerTotal);
+            playBeep(520, 0.04, 0.02);
             updateHandDisplay(document.getElementById('computer-hand'), computerHand, computerTotal);
             updateSideDeckDisplay();
             document.getElementById('score').textContent = `Sets Won - Player: ${playerSetsWon} | Computer: ${computerSetsWon}`;
@@ -608,6 +668,7 @@
                 playerTotal += card.value;
                 updateHandDisplay(document.getElementById('player-hand'), playerHand, playerTotal);
                 logMessage(`You drew a ${card.value} (${card.type})`);
+                playBeep(660, 0.05, 0.02);
                 if (playerTotal > 20) endSet();
                 else if (playerTotal === 20) stand();
             } else if (currentTurn === 'computer' && !computerStood) {
@@ -670,6 +731,7 @@
                 computerTotal += card.value;
                 updateHandDisplay(document.getElementById('computer-hand'), computerHand, computerTotal);
                 logMessage('Computer drew a card.');
+                playBeep(360, 0.05, 0.015);
             }
             if (computerTotal > 20) endSet();
             else if (computerTotal === 20) stand();
@@ -852,10 +914,10 @@
             document.getElementById('use-power-btn').disabled = true;
             let result;
             if (playerTotal > 20 && computerTotal > 20) { result = "Both bust! It's a draw."; triggerLoseAnimation(); }
-            else if (playerTotal > 20) { result = 'You bust! Computer wins the set.'; triggerLoseAnimation(); computerSetsWon++; }
-            else if (computerTotal > 20) { result = 'Computer busts! You win the set.'; triggerWinAnimation(); playerSetsWon++; }
-            else if (playerTotal > computerTotal) { result = 'You win the set!'; triggerWinAnimation(); playerSetsWon++; }
-            else if (computerTotal > playerTotal) { result = 'Computer wins the set!'; triggerLoseAnimation(); computerSetsWon++; }
+            else if (playerTotal > 20) { result = 'You bust! Computer wins the set.'; triggerLoseAnimation(); computerSetsWon++; stats.setsLost++; stats.currentStreak = 0; }
+            else if (computerTotal > 20) { result = 'Computer busts! You win the set.'; triggerWinAnimation(); playerSetsWon++; stats.setsWon++; stats.currentStreak++; stats.bestStreak = Math.max(stats.bestStreak, stats.currentStreak); }
+            else if (playerTotal > computerTotal) { result = 'You win the set!'; triggerWinAnimation(); playerSetsWon++; stats.setsWon++; stats.currentStreak++; stats.bestStreak = Math.max(stats.bestStreak, stats.currentStreak); }
+            else if (computerTotal > playerTotal) { result = 'Computer wins the set!'; triggerLoseAnimation(); computerSetsWon++; stats.setsLost++; stats.currentStreak = 0; }
             else {
                 if (playerSideDeck.some(card => card.type === 'gold' && card.subtype === 'tiebreaker')) { result = "It's a tie, but you have the tiebreaker! You win the set."; triggerWinAnimation(); playerSetsWon++; }
                 else if (computerSideDeck.some(card => card.type === 'gold' && card.subtype === 'tiebreaker')) { result = "It's a tie, but the computer has the tiebreaker! Computer wins the set."; triggerLoseAnimation(); computerSetsWon++; }
@@ -876,6 +938,14 @@
                 logMessage(`${gameWinner} the game!`);
                 gameOver = true; document.getElementById('new-game-btn').textContent = 'Play Again';
                 updateAchievementsOnGameEnd(gameWinner === 'You win');
+                // Update stats for game end
+                stats.gamesPlayed++;
+                const playerWon = playerSetsWon === 3;
+                if (playerWon) stats.gamesWon++;
+                stats.totalRounds++;
+                // Update rolling average total
+                const prevAvg = stats.averagePlayerTotal;
+                stats.averagePlayerTotal = ((prevAvg * (stats.totalRounds - 1)) + Math.max(0, Math.min(playerTotal, 40))) / stats.totalRounds;
                 persistProgress();
             } else { setTimeout(() => { newGame(); }, 2000); }
         }
@@ -923,12 +993,15 @@
         document.getElementById('closeHelp').addEventListener('click', () => { document.getElementById('helpModal').style.display = 'none'; });
         document.getElementById('achievements-btn').addEventListener('click', () => { renderAchievements(); document.getElementById('achievementsModal').style.display = 'block'; });
         document.getElementById('closeAchievements').addEventListener('click', () => { document.getElementById('achievementsModal').style.display = 'none'; });
+        document.getElementById('stats-btn').addEventListener('click', () => { renderStats(); document.getElementById('statsModal').style.display = 'block'; });
+        document.getElementById('closeStats').addEventListener('click', () => { document.getElementById('statsModal').style.display = 'none'; });
+        document.getElementById('resetStats').addEventListener('click', () => { stats = { gamesPlayed:0, gamesWon:0, setsWon:0, setsLost:0, bestStreak:0, currentStreak:0, averagePlayerTotal:0, totalRounds:0 }; persistProgress(); renderStats(); });
 
         // Persistence
         function persistProgress() {
             const data = {
                 playerCredits, playerSetsWon, computerSetsWon, playerClass, activePowerUp,
-                soundEnabled, difficulty, colorblindMode
+                soundEnabled, difficulty, colorblindMode, stats
             };
             try { localStorage.setItem('deckshift_progress', JSON.stringify(data)); } catch (e) {}
         }
@@ -945,6 +1018,7 @@
                 if (typeof data.soundEnabled === 'boolean') soundEnabled = data.soundEnabled;
                 if (typeof data.colorblindMode === 'boolean') colorblindMode = data.colorblindMode;
                 if (typeof data.difficulty === 'string') difficulty = data.difficulty;
+                if (data.stats && typeof data.stats === 'object') stats = { ...stats, ...data.stats };
             } catch (e) {}
         }
 
@@ -991,6 +1065,19 @@
             if (playerWonGame && playerSetsWon === 3 && computerSetsWon === 0) completeAchievement('sweep');
             if (playerCredits >= 200) completeAchievement('rich');
             saveAchievements();
+        }
+
+        function renderStats() {
+            const el = document.getElementById('statsContent');
+            const winRate = stats.gamesPlayed > 0 ? Math.round((stats.gamesWon / stats.gamesPlayed) * 100) : 0;
+            el.innerHTML = `
+                <div><strong>Games Played:</strong> ${stats.gamesPlayed}</div>
+                <div><strong>Games Won:</strong> ${stats.gamesWon} (${winRate}%)</div>
+                <div><strong>Sets Won:</strong> ${stats.setsWon}</div>
+                <div><strong>Sets Lost:</strong> ${stats.setsLost}</div>
+                <div><strong>Best Win Streak:</strong> ${stats.bestStreak}</div>
+                <div><strong>Average Player Total:</strong> ${stats.averagePlayerTotal.toFixed(2)}</div>
+            `;
         }
 
         // Hook achievements during play
