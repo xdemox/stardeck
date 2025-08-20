@@ -294,6 +294,7 @@
             <button id="help-btn" aria-label="How to Play">Help</button>
             <button id="achievements-btn" aria-label="Achievements">Achievements</button>
             <button id="stats-btn" aria-label="Statistics">Stats</button>
+            <button id="deck-btn" aria-label="Deck Builder">Deck</button>
         </div>
 
         <div id="log"></div>
@@ -373,6 +374,20 @@
         </div>
     </div>
 
+    <div id="deckModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="deckTitle">
+        <div class="modal-content">
+            <h3 id="deckTitle">Deck Builder (select 10)</h3>
+            <div id="deckBuilderList" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:12px;"></div>
+            <div style="display:flex; gap:8px; justify-content:center;">
+                <button id="deckRandomFill" class="modal-button">Random Fill</button>
+                <button id="deckClear" class="modal-button">Clear</button>
+                <button id="deckSave" class="modal-button">Save</button>
+                <button id="deckClose" class="modal-button">Close</button>
+            </div>
+            <div id="deckBuilderHint" style="margin-top:8px; opacity:.8;">Selected: <span id="deckSelectedCount">0</span>/10</div>
+        </div>
+    </div>
+
     <div id="animationContainer"></div>
 
     <script>
@@ -395,8 +410,11 @@
         let discardPile = [];
         let playerHand = [];
         let computerHand = [];
-        let playerSideDeck = [];
-        let computerSideDeck = [];
+        // Pazaak-style side decks
+        let playerSideCollection = [];
+        let computerSideCollection = [];
+        let playerSideDeck = [];    // hand of 4 for the current set
+        let computerSideDeck = [];  // hand of 4 for the current set
         let playerTotal = 0;
         let computerTotal = 0;
         let playerSetsWon = 0;
@@ -410,6 +428,8 @@
         let playerClass = '';
         let activePowerUp = '';
         let gameOver = false;
+        // Pazaak dealer advantage
+        let dealer = 'player';
 
         // Preferences
         let animationSpeedMultiplier = 1;
@@ -457,6 +477,9 @@
         let playerFrozenTurns = 0;
         let computerFrozenTurns = 0;
         let powerUpsDisabledTurns = 0;
+        // Pazaak rules: one side card per turn
+        let playerSideCardPlayedThisTurn = false;
+        let computerSideCardPlayedThisTurn = false;
 
         const characterPowers = {
             'jedi': { name: 'Force Clarity', description: 'See the top card of the deck' },
@@ -487,9 +510,25 @@
         }
 
         function createSideDeck() {
+            // Build a 10-card collection: use player's saved selection if available
+            const saved = localStorage.getItem('pazaak_selected_deck');
+            if (saved) {
+                try {
+                    const arr = JSON.parse(saved);
+                    if (Array.isArray(arr) && arr.length === 10) {
+                        return arr;
+                    }
+                } catch(e) {}
+            }
             const deck = [...sideDeckOptions];
             shuffle(deck);
             return deck.slice(0, 10);
+        }
+
+        function drawSideHand(collection) {
+            const copy = [...collection];
+            shuffle(copy);
+            return copy.slice(0, 4);
         }
 
         function updateProgressBar(barId, total) {
@@ -574,19 +613,30 @@
             }
             if (!playerClass) { logMessage('Please select a character class.'); return; }
 
+            // Toggle dealer each new set once the match has started
+            if (playerSetsWon + computerSetsWon > 0) {
+                dealer = dealer === 'player' ? 'computer' : 'player';
+            }
+
             buildDrawPile(); discardPile = [];
             initAudio();
             playerHand = []; computerHand = [];
-            playerSideDeck = createSideDeck(); computerSideDeck = createSideDeck();
+            // Pazaak: 10-card side collection, then draw 4 for the set
+            playerSideCollection = createSideDeck();
+            computerSideCollection = createSideDeck();
+            playerSideDeck = drawSideHand(playerSideCollection);
+            computerSideDeck = drawSideHand(computerSideCollection);
             playerTotal = 0; computerTotal = 0; currentTurn = 'player';
             playerStood = false; computerStood = false; forcePushUsed = false; forcePullUsed = false;
             playerFrozenTurns = 0; computerFrozenTurns = 0; powerUpsDisabledTurns = 0; eventActive = null;
+            playerSideCardPlayedThisTurn = false; computerSideCardPlayedThisTurn = false;
             document.querySelector('.character-select').classList.add('hidden');
             document.getElementById('result').textContent = '';
             document.getElementById('end-turn-btn').disabled = false;
             document.getElementById('stand-btn').disabled = false;
             document.getElementById('use-power-btn').disabled = !playerClass && !activePowerUp;
             document.getElementById('log').innerHTML = '';
+            updateDealerIndicator();
             updateHandDisplay(document.getElementById('player-hand'), playerHand, playerTotal);
             playBeep(520, 0.04, 0.02);
             updateHandDisplay(document.getElementById('computer-hand'), computerHand, computerTotal);
@@ -601,6 +651,12 @@
             const computerArea = document.getElementById('computer-area');
             if (currentTurn === 'player') { playerArea.classList.add('active-turn'); computerArea.classList.remove('active-turn'); }
             else { playerArea.classList.remove('active-turn'); computerArea.classList.add('active-turn'); }
+        }
+        function updateDealerIndicator() {
+            const playerArea = document.getElementById('player-area');
+            const computerArea = document.getElementById('computer-area');
+            playerArea.dataset.dealer = dealer === 'player' ? 'dealer' : '';
+            computerArea.dataset.dealer = dealer === 'computer' ? 'dealer' : '';
         }
 
         function checkForRandomEvent() {
@@ -669,6 +725,7 @@
                 updateHandDisplay(document.getElementById('player-hand'), playerHand, playerTotal);
                 logMessage(`You drew a ${card.value} (${card.type})`);
                 playBeep(660, 0.05, 0.02);
+                playerSideCardPlayedThisTurn = false; // reset side-card allowance per turn
                 if (playerTotal > 20) endSet();
                 else if (playerTotal === 20) stand();
             } else if (currentTurn === 'computer' && !computerStood) {
@@ -682,6 +739,7 @@
 
         function playSideCard(card) {
             if (currentTurn !== 'player' || playerStood) return;
+            if (playerSideCardPlayedThisTurn) { logMessage('You already used a side card this turn.'); return; }
             if (card.type === 'gold' && card.subtype === 'plus-minus') showPlusMinusModal(card);
             else processSideCard(card);
         }
@@ -708,6 +766,7 @@
             }
             playerHand.push(card);
             playerSideDeck = playerSideDeck.filter(c => c !== card);
+            playerSideCardPlayedThisTurn = true;
             updateHandDisplay(document.getElementById('player-hand'), playerHand, playerTotal);
             updateHandDisplay(document.getElementById('computer-hand'), computerHand, computerTotal);
             updateSideDeckDisplay();
@@ -743,7 +802,7 @@
                 // Difficulty-based logic
                 const rng = Math.random();
                 const playThreshold = difficulty === 'hard' ? 0.85 : difficulty === 'easy' ? 0.3 : 0.5;
-                const shouldPlay = playableSideCards.length > 0 && rng < playThreshold;
+                const shouldPlay = playableSideCards.length > 0 && rng < playThreshold && !computerSideCardPlayedThisTurn;
                 if (shouldPlay) {
                     const sideCard = playableSideCards[Math.floor(Math.random() * playableSideCards.length)];
                     if (sideCard.type === 'gold' && sideCard.subtype === 'plus-minus') {
@@ -761,6 +820,7 @@
                     } else { computerTotal += sideCard.value; logMessage('Computer played a side card.'); }
                     computerHand.push(sideCard);
                     computerSideDeck = computerSideDeck.filter(c => c !== sideCard);
+                    computerSideCardPlayedThisTurn = true;
                     updateHandDisplay(document.getElementById('computer-hand'), computerHand, computerTotal);
                     updateHandDisplay(document.getElementById('player-hand'), playerHand, playerTotal);
                 }
@@ -997,6 +1057,13 @@
         document.getElementById('closeStats').addEventListener('click', () => { document.getElementById('statsModal').style.display = 'none'; });
         document.getElementById('resetStats').addEventListener('click', () => { stats = { gamesPlayed:0, gamesWon:0, setsWon:0, setsLost:0, bestStreak:0, currentStreak:0, averagePlayerTotal:0, totalRounds:0 }; persistProgress(); renderStats(); });
 
+        // Deck builder modal
+        document.getElementById('deck-btn').addEventListener('click', () => { openDeckBuilder(); });
+        document.getElementById('deckClose').addEventListener('click', () => { document.getElementById('deckModal').style.display = 'none'; });
+        document.getElementById('deckRandomFill').addEventListener('click', () => { deckBuilderRandomFill(); });
+        document.getElementById('deckClear').addEventListener('click', () => { deckBuilderSelect([]); });
+        document.getElementById('deckSave').addEventListener('click', () => { deckBuilderSave(); });
+
         // Persistence
         function persistProgress() {
             const data = {
@@ -1078,6 +1145,57 @@
                 <div><strong>Best Win Streak:</strong> ${stats.bestStreak}</div>
                 <div><strong>Average Player Total:</strong> ${stats.averagePlayerTotal.toFixed(2)}</div>
             `;
+        }
+
+        // Deck builder logic (Pazaak 10-card side deck selection)
+        let deckBuilderSelected = [];
+        function openDeckBuilder() {
+            const list = document.getElementById('deckBuilderList');
+            list.innerHTML = '';
+            const available = [...sideDeckOptions];
+            const saved = localStorage.getItem('pazaak_selected_deck');
+            if (saved) {
+                try { deckBuilderSelected = JSON.parse(saved) || []; } catch(e) { deckBuilderSelected = []; }
+            }
+            available.forEach((c, idx) => {
+                const el = document.createElement('div');
+                el.className = `card ${c.type}`;
+                el.textContent = c.value;
+                if (c.subtype) {
+                    const s = document.createElement('div'); s.className = 'subtype'; s.textContent = c.subtype; el.appendChild(s);
+                }
+                el.style.cursor = 'pointer';
+                el.style.borderWidth = deckBuilderSelected.find(x => JSON.stringify(x)===JSON.stringify(c)) ? '4px' : '2px';
+                el.onclick = () => toggleDeckPick(c, el);
+                list.appendChild(el);
+            });
+            updateDeckBuilderCount();
+            document.getElementById('deckModal').style.display = 'block';
+        }
+        function toggleDeckPick(card, el) {
+            const key = JSON.stringify(card);
+            const idx = deckBuilderSelected.findIndex(x => JSON.stringify(x)===key);
+            if (idx >= 0) { deckBuilderSelected.splice(idx,1); el.style.borderWidth = '2px'; }
+            else if (deckBuilderSelected.length < 10) { deckBuilderSelected.push(card); el.style.borderWidth = '4px'; }
+            updateDeckBuilderCount();
+        }
+        function updateDeckBuilderCount() {
+            document.getElementById('deckSelectedCount').textContent = String(deckBuilderSelected.length);
+        }
+        function deckBuilderRandomFill() {
+            deckBuilderSelected = [];
+            const copy = [...sideDeckOptions]; shuffle(copy);
+            deckBuilderSelected = copy.slice(0,10);
+            openDeckBuilder();
+        }
+        function deckBuilderSelect(arr) {
+            deckBuilderSelected = arr; openDeckBuilder();
+        }
+        function deckBuilderSave() {
+            if (deckBuilderSelected.length !== 10) { logMessage('Select exactly 10 cards.'); return; }
+            try { localStorage.setItem('pazaak_selected_deck', JSON.stringify(deckBuilderSelected)); } catch(e) {}
+            document.getElementById('deckModal').style.display = 'none';
+            logMessage('Deck saved. New games will use it.');
         }
 
         // Hook achievements during play
