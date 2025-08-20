@@ -6,6 +6,12 @@
     <title>Deckshift — Pazaak Parlor</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        /* Optional Aurebesh font (place assets/fonts/aurebesh.woff2) */
+        @font-face {
+            font-family: 'Aurebesh';
+            src: url('assets/fonts/aurebesh.woff2') format('woff2');
+            font-display: swap;
+        }
 
         * {
             margin: 0;
@@ -267,8 +273,11 @@
         .settings-row input[type="range"] {
             width: 60%;
         }
-        /* Cantina atmosphere: override space backdrop and add bar ambiance */
-        .galaxy-background, .nebula, body::before { display: none !important; }
+        /* Theme toggles */
+        .theme-space .cantina-stage { display: none !important; }
+        .theme-cantina .galaxy-background, .theme-cantina .nebula, .theme-cantina body::before { display: none !important; }
+
+        /* Cantina atmosphere: bar ambiance (shown in theme-cantina) */
 
         .cantina-stage { position: fixed; inset: 0; z-index: -2; overflow: hidden; }
         .cantina-stage::before {
@@ -284,6 +293,7 @@
             position: absolute; top: 24px; left: 24px; color: #00eaff; letter-spacing: 6px; font-weight: 700;
             text-shadow: 0 0 8px rgba(0,234,255,.9), 0 0 20px rgba(0,234,255,.6); animation: neonFlicker 6s infinite; pointer-events: none; user-select: none;
         }
+        .neon-sign.aurebesh { font-family: 'Aurebesh', 'Orbitron', sans-serif; letter-spacing: 2px; }
         @keyframes neonFlicker { 0%, 9%, 11%, 100% { opacity: 1; } 10% { opacity: .6; } 48% { opacity: .9; } 50% { opacity: .4; } 52% { opacity: 1; } }
         .patron-silhouettes {
             position: absolute; bottom: 0; left: -10%; right: -10%; height: 22vh;
@@ -321,20 +331,20 @@
             mix-blend-mode: screen; opacity: .35; }
 
         /* Card and UI tinting for cantina neon */
-        h1 { color: #ffc857; text-shadow: 0 0 22px rgba(255, 200, 87, 0.6), 0 0 30px rgba(0, 234, 255, .25); letter-spacing: 6px; }
-        #log { background-color: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 200, 87, .25); color: #e7dec8; box-shadow: inset 0 0 12px rgba(0,0,0,.6); border-radius: 6px; }
-        .card { background: linear-gradient(165deg, #0c1716 0%, #0a1412 60%, #091210 100%); border: 2px solid rgba(0,234,255,.6); color: #e8fff8; border-radius: 6px; box-shadow: inset 0 0 10px rgba(0,0,0,.6), 0 0 10px rgba(0,234,255,.2); }
-        .card:hover { transform: translateY(-8px) scale(1.04); box-shadow: 0 0 24px rgba(0, 234, 255, 0.55); filter: saturate(1.15); }
-        .green { background: linear-gradient(135deg, #0d3d27 0%, #0a2b1c 50%, #082417 100%); border: 3px solid #1cff9b; color: #caffea; }
-        .blue { background: linear-gradient(135deg, #0a2744 0%, #081c31 50%, #071627 100%); border: 3px solid #00b7ff; color: #d4f0ff; }
-        .red { background: linear-gradient(135deg, #44110f 0%, #2c0c0a 50%, #220a08 100%); border: 3px solid #ff5252; color: #ffd6d6; }
-        .gold { background: linear-gradient(135deg, #3a2a0d 0%, #2a1e09 50%, #221807 100%); border: 3px solid #ffcc66; color: #ffe9b3; box-shadow: 0 0 10px 2px rgba(255, 204, 0, 0.35); }
-        button { background-color: rgba(10, 30, 28, .8); border: 2px solid #00eaff; color: #e6ffff; border-radius: 6px; box-shadow: 0 0 0 rgba(0,0,0,0); }
-        button:hover { background-color: rgba(14, 50, 46, .9); box-shadow: 0 0 18px rgba(0, 234, 255, 0.5), 0 0 6px rgba(255, 200, 87, .35) inset; }
+        .theme-cantina h1 { color: #ffc857; text-shadow: 0 0 22px rgba(255, 200, 87, 0.6), 0 0 30px rgba(0, 234, 255, .25); letter-spacing: 6px; }
+        .theme-cantina #log { background-color: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 200, 87, .25); color: #e7dec8; box-shadow: inset 0 0 12px rgba(0,0,0,.6); border-radius: 6px; }
+        .theme-cantina .card { background: linear-gradient(165deg, #0c1716 0%, #0a1412 60%, #091210 100%); border: 2px solid rgba(0,234,255,.6); color: #e8fff8; border-radius: 6px; box-shadow: inset 0 0 10px rgba(0,0,0,.6), 0 0 10px rgba(0,234,255,.2); }
+        .theme-cantina .card:hover { transform: translateY(-8px) scale(1.04); box-shadow: 0 0 24px rgba(0, 234, 255, 0.55); filter: saturate(1.15); }
+        .theme-cantina .green { background: linear-gradient(135deg, #0d3d27 0%, #0a2b1c 50%, #082417 100%); border: 3px solid #1cff9b; color: #caffea; }
+        .theme-cantina .blue { background: linear-gradient(135deg, #0a2744 0%, #081c31 50%, #071627 100%); border: 3px solid #00b7ff; color: #d4f0ff; }
+        .theme-cantina .red { background: linear-gradient(135deg, #44110f 0%, #2c0c0a 50%, #220a08 100%); border: 3px solid #ff5252; color: #ffd6d6; }
+        .theme-cantina .gold { background: linear-gradient(135deg, #3a2a0d 0%, #2a1e09 50%, #221807 100%); border: 3px solid #ffcc66; color: #ffe9b3; box-shadow: 0 0 10px 2px rgba(255, 204, 0, 0.35); }
+        .theme-cantina button { background-color: rgba(10, 30, 28, .8); border: 2px solid #00eaff; color: #e6ffff; border-radius: 6px; box-shadow: 0 0 0 rgba(0,0,0,0); }
+        .theme-cantina button:hover { background-color: rgba(14, 50, 46, .9); box-shadow: 0 0 18px rgba(0, 234, 255, 0.5), 0 0 6px rgba(255, 200, 87, .35) inset; }
 
         /* Dealer badge */
-        #player-area[data-dealer="dealer"]::after,
-        #computer-area[data-dealer="dealer"]::after {
+        .theme-cantina #player-area[data-dealer="dealer"]::after,
+        .theme-cantina #computer-area[data-dealer="dealer"]::after {
             content: 'DEALER'; position: absolute; top: -14px; right: 8px; font-size: 12px; letter-spacing: 2px;
             color: #0ff; padding: 3px 6px; border: 1px solid rgba(0,234,255,.6); border-radius: 4px;
             background: rgba(0, 30, 28, .65); box-shadow: 0 0 10px rgba(0,234,255,.35);
@@ -357,7 +367,7 @@
         <div class="smoke-haze"></div>
     </div>
     <div id="game-container" class="table-surface">
-        <h1>Pazaak Parlor</h1>
+        <h1><span class="sr-only">Pazaak Parlor</span><span aria-hidden="true">Pazaak Parlor</span></h1>
 
         <div class="character-select">
             <div class="character" data-class="jedi">Jedi</div>
@@ -548,6 +558,9 @@
         let soundEnabled = true;
         let difficulty = 'normal';
         let colorblindMode = false;
+        // UI Theme and music
+        let uiTheme = 'cantina'; // 'space' | 'cantina'
+        let musicEnabled = false;
 
         // Stats
         let stats = {
@@ -753,6 +766,21 @@
             logElement.scrollTop = logElement.scrollHeight;
         }
 
+        function applyUiTheme() {
+            const root = document.documentElement;
+            root.classList.remove('theme-space', 'theme-cantina');
+            root.classList.add(uiTheme === 'cantina' ? 'theme-cantina' : 'theme-space');
+            // Toggle neon sign Aurebesh if font is present
+            document.querySelectorAll('.neon-sign').forEach(el => {
+                if (document.fonts && [...document.fonts].some(f => (f.family || '').includes('Aurebesh'))) el.classList.add('aurebesh');
+            });
+        }
+
+        function ensureMusic() {
+            if (!audioCtx) initAudio();
+            if (musicEnabled && soundEnabled) startAmbience(); else stopAmbience();
+        }
+
         function newGame() {
             if (gameOver) {
                 playerSetsWon = 0; computerSetsWon = 0; playerCredits = 100; updateCreditsDisplay();
@@ -768,7 +796,7 @@
             }
 
             buildDrawPile(); discardPile = [];
-            initAudio(); if (soundEnabled) startAmbience();
+            initAudio(); ensureMusic();
             playerHand = []; computerHand = [];
             // Pazaak: 10-card side collection, then draw 4 for the set
             playerSideCollection = createSideDeck();
@@ -1193,7 +1221,28 @@
         document.getElementById('closeSettings').addEventListener('click', () => { document.getElementById('settingsModal').style.display = 'none'; });
         document.getElementById('animSpeed').addEventListener('input', (e) => { animationSpeedMultiplier = parseFloat(e.target.value) || 1; });
         document.getElementById('reducedMotion').addEventListener('change', (e) => { reducedMotion = e.target.checked; });
-        document.getElementById('soundToggle').addEventListener('change', (e) => { soundEnabled = e.target.checked; persistProgress(); if (soundEnabled) { initAudio(); startAmbience(); } else { stopAmbience(); } });
+        document.getElementById('soundToggle').addEventListener('change', (e) => { soundEnabled = e.target.checked; ensureMusic(); persistProgress(); });
+        // Add theme and music controls
+        (function addThemeControls(){
+            const modal = document.getElementById('settingsModal').querySelector('.modal-content');
+            const themeRow = document.createElement('div'); themeRow.className = 'settings-row';
+            themeRow.innerHTML = '<label for="themeSelect">Theme</label>'+
+                '<select id="themeSelect"><option value="space">Space</option><option value="cantina">Cantina</option></select>';
+            const musicRow = document.createElement('div'); musicRow.className = 'settings-row';
+            musicRow.innerHTML = '<label for="musicToggle">Cantina music</label><input id="musicToggle" type="checkbox">';
+            modal.insertBefore(musicRow, modal.querySelector('button#closeSettings'));
+            modal.insertBefore(themeRow, musicRow);
+            // Initialize values
+            setTimeout(() => {
+                const themeSelect = document.getElementById('themeSelect');
+                const musicToggle = document.getElementById('musicToggle');
+                if (themeSelect) themeSelect.value = uiTheme;
+                if (musicToggle) musicToggle.checked = !!musicEnabled;
+                applyUiTheme(); ensureMusic();
+                themeSelect?.addEventListener('change', (e) => { uiTheme = e.target.value; applyUiTheme(); persistProgress(); });
+                musicToggle?.addEventListener('change', (e) => { musicEnabled = e.target.checked; ensureMusic(); persistProgress(); });
+            }, 0);
+        })();
         document.getElementById('difficultySelect').addEventListener('change', (e) => { difficulty = e.target.value; persistProgress(); });
         document.getElementById('colorblindMode').addEventListener('change', (e) => { colorblindMode = e.target.checked; updateHandDisplay(document.getElementById('player-hand'), playerHand, playerTotal); updateHandDisplay(document.getElementById('computer-hand'), computerHand, computerTotal); persistProgress(); });
 
@@ -1217,7 +1266,7 @@
         function persistProgress() {
             const data = {
                 playerCredits, playerSetsWon, computerSetsWon, playerClass, activePowerUp,
-                soundEnabled, difficulty, colorblindMode, stats
+                soundEnabled, difficulty, colorblindMode, stats, uiTheme, musicEnabled
             };
             try { localStorage.setItem('deckshift_progress', JSON.stringify(data)); } catch (e) {}
         }
@@ -1234,6 +1283,8 @@
                 if (typeof data.soundEnabled === 'boolean') soundEnabled = data.soundEnabled;
                 if (typeof data.colorblindMode === 'boolean') colorblindMode = data.colorblindMode;
                 if (typeof data.difficulty === 'string') difficulty = data.difficulty;
+                if (typeof data.uiTheme === 'string') uiTheme = data.uiTheme;
+                if (typeof data.musicEnabled === 'boolean') musicEnabled = data.musicEnabled;
                 if (data.stats && typeof data.stats === 'object') stats = { ...stats, ...data.stats };
             } catch (e) {}
         }
